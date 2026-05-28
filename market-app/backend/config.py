@@ -143,8 +143,11 @@ class Settings:
     newsdata_api_key: str = os.getenv("NEWSDATA_API_KEY", "")
     gnews_api_key: str = os.getenv("GNEWS_API_KEY", "")
     cors_origins: list[str] = field(default_factory=lambda: [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
+        origin.strip() for origin in os.getenv(
+            "CORS_ORIGINS",
+            "http://localhost:5173,http://127.0.0.1:5173"
+        ).split(",")
+        if origin.strip()
     ])
     quote_poll_seconds: int = 60
     news_poll_seconds: int = 300

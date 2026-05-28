@@ -138,10 +138,13 @@ app.include_router(news_router.router, prefix="/api")
 app.include_router(llm_router.router, prefix="/api")
 app.include_router(portfolio_router.router, prefix="/api")
 
+origins = settings.cors_origins
+allow_all = "*" in origins or len(origins) == 0
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all else origins,
+    allow_credentials=not allow_all,
     allow_methods=["*"],
     allow_headers=["*"],
 )
