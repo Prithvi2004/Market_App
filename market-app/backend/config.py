@@ -5,6 +5,40 @@ import os
 from dataclasses import dataclass, field
 
 
+# ---------------------------------------------------------------------------
+# NSE / BSE Holiday Calendar 2025-2026
+# ---------------------------------------------------------------------------
+NSE_HOLIDAYS: set[str] = {
+    # 2025
+    "2025-01-26",  # Republic Day
+    "2025-02-19",  # Chhatrapati Shivaji Maharaj Jayanti
+    "2025-03-14",  # Holi
+    "2025-04-14",  # Dr. Baba Saheb Ambedkar Jayanti
+    "2025-04-18",  # Good Friday
+    "2025-05-01",  # Maharashtra Day
+    "2025-08-15",  # Independence Day
+    "2025-08-27",  # Ganesh Chaturthi
+    "2025-10-02",  # Gandhi Jayanti
+    "2025-10-20",  # Dussehra (tentative)
+    "2025-10-21",  # Diwali Laxmi Puja (tentative)
+    "2025-10-23",  # Diwali Balipratipada (tentative)
+    "2025-11-05",  # Prakash Gurpurb (tentative)
+    "2025-11-20",  # Maharashtra General Assembly Election (if declared)
+    "2025-12-25",  # Christmas
+    # 2026
+    "2026-01-26",  # Republic Day
+    "2026-03-03",  # Holi (tentative)
+    "2026-04-03",  # Good Friday (tentative)
+    "2026-04-14",  # Dr. Baba Saheb Ambedkar Jayanti
+    "2026-05-01",  # Maharashtra Day
+    "2026-08-15",  # Independence Day
+    "2026-10-02",  # Gandhi Jayanti
+    "2026-12-25",  # Christmas
+}
+
+# ---------------------------------------------------------------------------
+# Universe
+# ---------------------------------------------------------------------------
 NIFTY50 = [
     "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "ICICIBANK.NS",
     "HINDUNILVR.NS", "ITC.NS", "SBIN.NS", "BHARTIARTL.NS", "KOTAKBANK.NS",
@@ -89,6 +123,9 @@ SYMBOL_META = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Settings
+# ---------------------------------------------------------------------------
 @dataclass
 class Settings:
     redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -97,12 +134,16 @@ class Settings:
     ollama_fallback: str = os.getenv("OLLAMA_FALLBACK", "qwen3-vl:235b-cloud")
     ollama_fallback_2: str = os.getenv("OLLAMA_FALLBACK_2", "kimi-k2.5:cloud")
     db_url: str = os.getenv("DB_URL", "sqlite:///./market.db")
+    newsdata_api_key: str = os.getenv("NEWSDATA_API_KEY", "pub_5fa1a058e96048e4a00a4bb9c81cd276")
+    gnews_api_key: str = os.getenv("GNEWS_API_KEY", "ac175ba4ac373ef7986539782047ac90")
     cors_origins: list[str] = field(default_factory=lambda: [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ])
     quote_poll_seconds: int = 60
     news_poll_seconds: int = 300
+    quote_ttl: int = 86400
+    news_ttl: int = 86400
 
 
 settings = Settings()

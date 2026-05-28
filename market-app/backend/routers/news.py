@@ -8,6 +8,7 @@ from fastapi import APIRouter, Query
 from sqlmodel import select
 
 from cache import cache_get, cache_set
+from config import SYMBOL_META
 from database import get_session
 from models import NewsArticleDB
 
@@ -33,10 +34,11 @@ def _row_to_dict(r: NewsArticleDB) -> dict:
 def get_news(
     ticker: Optional[str] = None,
     category: Optional[str] = None,
+    sector: Optional[str] = None,
     limit: int = 20,
 ):
     cache_key = None
-    if ticker and not category:
+    if ticker and not category and not sector:
         cache_key = f"news:ticker:{ticker}"
         cached = cache_get(cache_key)
         if cached:
@@ -44,16 +46,27 @@ def get_news(
     with get_session() as session:
         stmt = select(NewsArticleDB).order_by(NewsArticleDB.published_at.desc())
         rows = session.exec(stmt).all()
+    sector_symbols = None
+    if sector:
+        sector_symbols = {
+            sym for sym, (_name, s) in SYMBOL_META.items() if s == sector
+        }
+        if not sector_symbols:
+            return []
     out = []
     for r in rows:
         if category and r.category != category:
             continue
-        if ticker:
+        tickers = None
+        if ticker or sector_symbols:
             try:
-                if ticker not in json.loads(r.tickers or "[]"):
-                    continue
+                tickers = json.loads(r.tickers or "[]")
             except Exception:
                 continue
+        if ticker and ticker not in tickers:
+            continue
+        if sector_symbols and not any(t in sector_symbols for t in tickers):
+            continue
         out.append(_row_to_dict(r))
         if len(out) >= max(limit, 50):
             break
@@ -74,6 +87,23 @@ def get_latest(limit: int = 30):
     out = [_row_to_dict(r) for r in rows]
     cache_set("news:latest", out, ttl=300)
     return out[:limit]
+
+
+@router.get("/news/categories/count")
+def categories_count():
+    """Return article counts per category for the last 200 articles."""
+    cached = cache_get("news:cat_counts")
+    if cached:
+        return cached
+    with get_session() as session:
+        rows = session.exec(
+            select(NewsArticleDB).order_by(NewsArticleDB.published_at.desc()).limit(200)
+        ).all()
+    out = {"all": len(rows), "national": 0, "international": 0, "sector": 0}
+    for r in rows:
+        out[r.category] = out.get(r.category, 0) + 1
+    cache_set("news:cat_counts", out, ttl=300)
+    return out
 
 
 @router.get("/sentiment")

@@ -1,65 +1,118 @@
-# Market App — Indian Stock Market Analytics (Local)
+# 📈 Indian Stock Market Analytics
 
-End-to-end Indian stock market analytics web app. Real-time NSE/BSE quotes,
-categorized news with sentiment, top gainers/losers, sector heatmap, and
-LLM-powered "explain this move" narratives — all running locally via Ollama.
+An enterprise-grade real-time Indian stock market analytics platform with AI-powered explainability.
 
-No paid APIs required for MVP.
+## Features
 
-## Stack
+- **Live Market Data**: Nifty 50, Sensex, Bank Nifty, Nifty IT indices with 60s polling via yfinance
+- **Top Gainers & Losers**: Real-time ranking of NIFTY 50 stocks
+- **Categorized News**: National / International / Sector with sentiment scoring (VADER)
+- **News Sources**: RSS feeds (ET, Moneycontrol, LiveMint, NDTV) + NewsData.io + GNews
+- **AI Explainer**: Streaming LLM analysis of price movements with source citations
+- **Impact Analyzer**: Given any news headline, identify affected sectors/stocks via LLM
+- **Sector Heatmap**: Visual grid of sector-wise average performance
+- **Portfolio Tracker**: localStorage-based portfolio with live P&L
+- **Provenance Panel**: Full source traceability for every AI-generated narrative
+- **WebSocket Live Feed**: Real-time price broadcast to all connected clients
 
-- **Backend:** FastAPI · APScheduler · yfinance · feedparser · redis · SQLModel · vaderSentiment · spaCy · httpx
-- **Frontend:** React 18 · Vite · TanStack Query v5 · Zustand · Recharts · Tailwind v3
-- **LLM:** Ollama (`deepseek-v3.1:671b-cloud`, fallback `qwen3-vl:235b-cloud`, `kimi-k2.5:cloud`) via SSE streaming
-- **Infra:** Redis (Docker) · SQLite (`market.db`)
+## Architecture
 
-## Prerequisites
+```
+yfinance / RSS / NewsData.io / GNews
+        ↓
+  APScheduler (60s quotes, 5m news)
+        ↓
+  FastAPI backend + SQLite + Redis cache
+        ↓
+  Ollama LLM (deepseek-v3.1:671b-cloud primary)
+        ↓
+  React 18 + Vite frontend
+```
 
+## Quick Start (Local)
+
+### Prerequisites
 - Python 3.11+
-- Node 18+
-- Docker (for Redis)
-- [Ollama](https://ollama.com) installed and running
+- Node.js 18+
+- Docker (for Redis) OR Redis installed locally
+- Ollama installed and running
 
-## Setup
-
+### 1. Start Redis
 ```bash
-# 1. Pull LLM models (cloud-hosted)
-ollama pull deepseek-v3.1:671b-cloud
-# (optional fallback models)
-ollama pull qwen3-vl:235b-cloud
-ollama pull kimi-k2.5:cloud
+docker run -d -p 6379:6379 redis:7-alpine
+# OR with docker-compose (also starts backend):
+docker-compose up -d redis
+```
 
-# 2. Start Redis
-docker-compose up -d
-
-# 3. Backend
-cd backend
+### 2. Backend
+```bash
+cd market-app/backend
 python -m venv venv
-source venv/bin/activate            # Windows: venv\Scripts\activate
+venv\Scripts\activate  # Windows
 pip install -r ../requirements.txt
 python -m spacy download en_core_web_sm
 uvicorn main:app --reload --port 8000
-
-# 4. Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
-
-# 5. Open http://localhost:5173
 ```
 
-## Ports
+### 3. Frontend
+```bash
+cd market-app/frontend
+npm install
+npm run dev
+# Opens on http://localhost:5173
+```
 
-| Service  | Port  |
-| -------- | ----- |
-| Frontend | 5173  |
-| Backend  | 8000  |
-| Redis    | 6379  |
-| Ollama   | 11434 |
+### 4. Verify
+```bash
+curl http://localhost:8000/api/health/detailed
+curl http://localhost:8000/api/indices
+curl http://localhost:8000/api/news/latest
+```
 
-## Notes
+## LLM Setup (Ollama)
 
-- yfinance is polled in batch from the scheduler only — never on per-request paths.
-- Outside Indian market hours (Mon–Fri 09:15–15:30 IST) the API returns last-known data with `"stale": true`.
-- All LLM inference is local — the app never calls external AI providers.
-- The ProvenancePanel always shows source URLs for LLM claims. Not financial advice.
+```bash
+# Install Ollama
+winget install Ollama.Ollama  # Windows
+
+# Pull models (choose based on RAM)
+ollama pull mistral:7b-instruct   # 8GB RAM — 4.1GB download
+ollama pull llama3:8b             # 16GB RAM — 4.7GB download
+
+# Update OLLAMA_MODEL in .env or config.py
+
+# Test
+curl http://localhost:11434/api/generate -d '{"model":"mistral:7b-instruct","prompt":"Hello","stream":false}'
+```
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health/detailed` | System health + Redis/DB status |
+| GET | `/api/indices` | Nifty 50, Sensex, Bank Nifty, Nifty IT |
+| GET | `/api/quote?symbol=X` | Single stock quote |
+| GET | `/api/gainers?n=10` | Top N gainers |
+| GET | `/api/losers?n=10` | Top N losers |
+| GET | `/api/chart?symbol=X&range=1D` | OHLCV chart data |
+| GET | `/api/news/latest` | Latest 30 articles |
+| GET | `/api/news?ticker=X&category=national` | Filtered news |
+| GET | `/api/news/categories/count` | Article counts per category |
+| GET | `/api/sectors` | Sector heatmap data |
+| GET | `/api/search?q=X` | Symbol search |
+| GET | `/api/status` | Market open/closed/holiday |
+| POST | `/api/explain` | LLM price explanation (SSE stream) |
+| POST | `/api/impact` | LLM news impact analysis (SSE stream) |
+| POST | `/api/portfolio/value` | Live P&L for a list of holdings |
+| WS | `/ws/prices` | Real-time price broadcast |
+
+## Environment Variables
+
+See `.env.example` for all configurable settings.
+
+## Compliance & Disclaimers
+
+- yfinance data is for personal/non-commercial use per Yahoo Finance ToS
+- All LLM-generated narratives are **not financial advice**
+- NSE/BSE holiday calendar included for 2025-2026
+- Rate limits: yfinance ~2000 req/hr, NewsData.io 200/day, GNews 100/day

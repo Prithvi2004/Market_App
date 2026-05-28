@@ -2,4 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
+@layer base {
+  html, body, #root {
+    height: 100%;
+    background-color: #080e1a;
+    color: #e2e8f0;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar { width: 4px; height: 4px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 2px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.5);
+  }
+}
+
+@layer components {
+  /* ── Glass cards ─────────────────────────────────────────── */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-200;
+  }
+  .glass-card-hover:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
+  }
+
+  /* ── Buttons ──────────────────────────────────────────────── */
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-ghost {
+    @apply px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200;
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+  }
+  .btn-ghost:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(99, 102, 241, 0.25);
+  }
+
+  /* ── Badges ───────────────────────────────────────────────── */
+  .badge-bull {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+  .badge-bear {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: rgba(244, 63, 94, 0.15);
+    color: #f43f5e;
+    border: 1px solid rgba(244, 63, 94, 0.2);
+  }
+  .badge-neutral {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+  }
+
+  /* ── Text ─────────────────────────────────────────────────── */
+  .gradient-text {
+    background: linear-gradient(135deg, #a5b4fc, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Shimmer skeleton ─────────────────────────────────────── */
+  .shimmer-bg {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.07) 50%,
+      rgba(255, 255, 255, 0.03) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* ── Live dot ─────────────────────────────────────────────── */
+  .live-dot {
+    @apply inline-block w-2 h-2 rounded-full bg-bull animate-pulse-soft;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+
+  /* ── Ticker tape ──────────────────────────────────────────── */
+  .ticker-tape-track {
+    display: flex;
+    animation: ticker 40s linear infinite;
+    width: max-content;
+  }
+  .ticker-tape-track:hover {
+    animation-play-state: paused;
+  }
+
+  /* ── Input ────────────────────────────────────────────────── */
+  .input-dark {
+    @apply w-full px-3 py-2 rounded-lg text-sm text-slate-200 outline-none transition-all duration-200;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+  }
+  .input-dark::placeholder { color: #64748b; }
+  .input-dark:focus {
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+  }
+
+  /* ── Divider ──────────────────────────────────────────────── */
+  .divider {
+    @apply my-3;
+    border-top: 1px solid rgba(99, 102, 241, 0.08);
+  }
+
+  /* ── Modal overlay ────────────────────────────────────────── */
+  .modal-overlay {
+    @apply fixed inset-0 z-40 flex items-end sm:items-center justify-center p-4;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+  }
+}
+
+@layer utilities {
+  .text-bull   { color: #10b981; }
+  .text-bear   { color: #f43f5e; }
+  .text-muted  { color: #64748b; }
+  .text-highlight { color: #a5b4fc; }
+
+  .bg-bull-dim { background: rgba(16, 185, 129, 0.08); }
+  .bg-bear-dim { background: rgba(244, 63, 94, 0.08); }
+
+  .border-bull { border-color: rgba(16, 185, 129, 0.3); }
+  .border-bear { border-color: rgba(244, 63, 94, 0.3); }
+
+  /* Typewriter cursor */
+  .typewriter-cursor::after {
+    content: "▍";
+    @apply animate-blink text-accent-light ml-0.5;
+  }
+}

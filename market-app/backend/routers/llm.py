@@ -27,6 +27,7 @@ async def explain(req: ExplainRequest):
 
     articles = get_news(ticker=req.symbol, limit=5) if req.include_news else []
     prompt = build_prompt(req.symbol, quote, articles)
+    cache_key = f"{req.symbol}:{req.timeframe}"
 
     async def gen():
         yield _sse("meta", {
@@ -41,10 +42,9 @@ async def explain(req: ExplainRequest):
             ],
         })
         full = ""
-        async for chunk in stream_explain(prompt):
+        async for chunk in stream_explain(prompt, cache_key=cache_key):
             full += chunk
             yield _sse("token", {"text": chunk})
-        # crude confidence heuristic from the trailing line
         conf = "medium"
         last = full.strip().lower().splitlines()[-1] if full.strip() else ""
         for level in ("high", "medium", "low"):

@@ -5,3 +5,35 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --save "" --appendonly no
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=deepseek-v3.1:671b-cloud
+      - OLLAMA_FALLBACK=qwen3-vl:235b-cloud
+      - OLLAMA_FALLBACK_2=kimi-k2.5:cloud
+      - NEWSDATA_API_KEY=pub_5fa1a058e96048e4a00a4bb9c81cd276
+      - GNEWS_API_KEY=ac175ba4ac373ef7986539782047ac90
+    volumes:
+      - ./backend:/app
+      - market_db:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  market_db:
