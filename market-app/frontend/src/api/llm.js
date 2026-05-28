@@ -27,9 +27,15 @@ async function* readEvents(response) {
     }
   }
 }
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
+const getUrl = (url) => {
+  if (url.startsWith("http") || !API_BASE_URL) return url;
+  return `${API_BASE_URL.replace(/\/$/, "")}${url}`;
+};
 
 export async function streamExplain({ symbol, timeframe = "1D", include_news = true }, handlers) {
-  const resp = await fetch("/api/explain", {
+  const resp = await fetch(getUrl("/api/explain"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ symbol, timeframe, include_news }),
@@ -41,7 +47,7 @@ export async function streamExplain({ symbol, timeframe = "1D", include_news = t
 }
 
 export async function streamImpact({ headline, summary = "" }, handlers) {
-  const resp = await fetch("/api/impact", {
+  const resp = await fetch(getUrl("/api/impact"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ headline, summary }),

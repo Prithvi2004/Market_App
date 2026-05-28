@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
+const getUrl = (url) => {
+  if (url.startsWith("http") || !API_BASE_URL) return url;
+  return `${API_BASE_URL.replace(/\/$/, "")}${url}`;
+};
+
 const j = (url) =>
-  fetch(url).then((r) => {
+  fetch(getUrl(url)).then((r) => {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return r.json();
   });
@@ -88,7 +95,7 @@ export const searchSymbols = (q) =>
 
 // ─── Portfolio valuation ──────────────────────────────────────────────────────
 export const portfolioValue = (holdings) =>
-  fetch("/api/portfolio/value", {
+  fetch(getUrl("/api/portfolio/value"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(holdings),

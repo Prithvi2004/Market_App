@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://marketpulse-api.onrender.com/api/$1"
+    },
+    {
+      "source": "/ws/(.*)",
+      "destination": "https://marketpulse-api.onrender.com/ws/$1"
+    },
+    {
+      "source": "/((?!api|ws).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

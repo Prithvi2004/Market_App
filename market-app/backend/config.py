@@ -4,6 +4,11 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+from dotenv import load_dotenv
+
+# Load configuration from .env file
+load_dotenv()
+
 
 # ---------------------------------------------------------------------------
 # NSE / BSE Holiday Calendar 2025-2026
@@ -129,13 +134,14 @@ SYMBOL_META = {
 @dataclass
 class Settings:
     redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-    ollama_url: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
+    ollama_url: str = os.getenv("OLLAMA_URL", "https://ollama.com/api")
+    ollama_api_key: str = os.getenv("OLLAMA_API_KEY", "")
     ollama_model: str = os.getenv("OLLAMA_MODEL", "deepseek-v3.1:671b-cloud")
     ollama_fallback: str = os.getenv("OLLAMA_FALLBACK", "qwen3-vl:235b-cloud")
     ollama_fallback_2: str = os.getenv("OLLAMA_FALLBACK_2", "kimi-k2.5:cloud")
     db_url: str = os.getenv("DB_URL", "sqlite:///./market.db")
-    newsdata_api_key: str = os.getenv("NEWSDATA_API_KEY", "pub_5fa1a058e96048e4a00a4bb9c81cd276")
-    gnews_api_key: str = os.getenv("GNEWS_API_KEY", "ac175ba4ac373ef7986539782047ac90")
+    newsdata_api_key: str = os.getenv("NEWSDATA_API_KEY", "")
+    gnews_api_key: str = os.getenv("GNEWS_API_KEY", "")
     cors_origins: list[str] = field(default_factory=lambda: [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

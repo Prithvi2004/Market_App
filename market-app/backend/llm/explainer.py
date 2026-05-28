@@ -65,7 +65,16 @@ async def stream_explain(prompt: str, cache_key: Optional[str] = None) -> AsyncI
 
     for model in models:
         try:
-            url = f"{settings.ollama_url}/api/generate"
+            base_url = settings.ollama_url.rstrip("/")
+            if base_url.endswith("/api"):
+                url = f"{base_url}/generate"
+            else:
+                url = f"{base_url}/api/generate"
+
+            headers = {}
+            if settings.ollama_api_key:
+                headers["Authorization"] = f"Bearer {settings.ollama_api_key}"
+
             payload = {
                 "model": model,
                 "system": SYSTEM_PROMPT,
@@ -73,7 +82,7 @@ async def stream_explain(prompt: str, cache_key: Optional[str] = None) -> AsyncI
                 "stream": True,
             }
             async with httpx.AsyncClient(timeout=httpx.Timeout(180.0, connect=10.0)) as client:
-                async with client.stream("POST", url, json=payload) as resp:
+                async with client.stream("POST", url, json=payload, headers=headers) as resp:
                     if resp.status_code != 200:
                         log.warning("Model %s failed with HTTP %d, trying next", model, resp.status_code)
                         continue
