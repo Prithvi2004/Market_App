@@ -55,6 +55,14 @@ const useAppStore = create((set, get) => ({
   resetImpact: () =>
     set({ impactText: "", impactHeadline: "", impactSummary: "" }),
 
+  // ── Analysis Terminal ─────────────────────────────────────────
+  analysisOpen: false,
+  setAnalysisOpen: (b) => set({ analysisOpen: b }),
+  analysisSymbol: null,
+  setAnalysisSymbol: (s) => set({ analysisSymbol: s }),
+  analysisStandalone: false,
+  setAnalysisStandalone: (b) => set({ analysisStandalone: b }),
+
   // ── Portfolio overlay ─────────────────────────────────────────
   portfolioOpen: false,
   setPortfolioOpen: (b) => set({ portfolioOpen: b }),
@@ -79,13 +87,13 @@ export const usePortfolioStore = create(
       updateHolding: (symbol, updates) =>
         set((s) => ({
           holdings: s.holdings.map((h) =>
-            h.symbol === symbol ? { ...h, ...updates } : h
+            h.symbol === symbol ? { ...h, ...updates } : h,
           ),
         })),
       clearHoldings: () => set({ holdings: [] }),
     }),
-    { name: "market-portfolio" }
-  )
+    { name: "market-portfolio" },
+  ),
 );
 
 export const useStore = useAppStore;

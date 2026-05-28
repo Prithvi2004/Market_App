@@ -9,6 +9,8 @@ import SearchBar from "./components/SearchBar.jsx";
 import TickerTape from "./components/TickerTape.jsx";
 import ImpactAnalyzer from "./components/ImpactAnalyzer.jsx";
 import PortfolioTracker from "./components/PortfolioTracker.jsx";
+import AnalysisTerminal from "./components/AnalysisTerminal.jsx";
+import PatternGuide from "./components/PatternGuide.jsx";
 
 // ─── WebSocket hook for live prices ───────────────────────────────────────────
 function useLivePricesWS() {
@@ -20,8 +22,13 @@ function useLivePricesWS() {
     let stopped = false;
 
     function connect() {
-      const proto = location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${location.host}/ws/prices`);
+      const wsBase = import.meta.env.VITE_WS_URL
+        ? import.meta.env.VITE_WS_URL
+        : import.meta.env.DEV
+          ? "ws://127.0.0.1:8000"
+          : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`;
+      const wsUrl = `${wsBase.replace(/\/$/, "")}/ws/prices`;
+      ws = new WebSocket(wsUrl);
       ws.onopen = () => {
         backoff.current = 1000;
       };
@@ -52,6 +59,7 @@ function useLivePricesWS() {
 const TABS = [
   { id: "markets", label: "Markets", icon: "📈" },
   { id: "sectors", label: "Sectors", icon: "🗺️" },
+  { id: "guide", label: "Guide", icon: "📖" },
 ];
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -71,7 +79,29 @@ export default function App() {
   const setImpactOpen = useStore((s) => s.setImpactOpen);
   const setPortfolioOpen = useStore((s) => s.setPortfolioOpen);
 
+  const analysisParams = new URLSearchParams(window.location.search);
+  const analysisFlag = analysisParams.get("analysis");
+  const analysisSymbol = analysisParams.get("symbol");
+  const isAnalysisPage =
+    analysisFlag === "1" ||
+    analysisFlag === "true" ||
+    window.location.pathname === "/analysis";
+
+  useEffect(() => {
+    if (isAnalysisPage) {
+      // eslint-disable-next-line no-console
+      console.info("[App] analysis page detected", {
+        href: window.location.href,
+        analysisFlag,
+        analysisSymbol,
+        pathname: window.location.pathname,
+        isAnalysisPage,
+      });
+    }
+  }, [isAnalysisPage, analysisFlag, analysisSymbol]);
+
   const [activeTab, setActiveTab] = useState("markets");
+  const [newsFeedMinimized, setNewsFeedMinimized] = useState(false);
 
   useEffect(() => {
     if (status?.market_status) setMarketStatus(status.market_status);
@@ -79,6 +109,27 @@ export default function App() {
 
   const isOpen = status?.is_open;
   const marketLabel = status?.market_status ?? "…";
+
+  if (isAnalysisPage) {
+    return (
+      <div className="min-h-screen max-h-screen flex flex-col bg-ink overflow-hidden">
+        {/* Status Banner */}
+        <div className="px-4 py-2 text-[11px] text-muted border-b border-[rgba(99,102,241,0.08)] bg-[rgba(99,102,241,0.04)] flex items-center justify-between">
+          <div>
+            <span className="font-semibold text-accent">📊 Analysis Mode</span>
+            {" · "}
+            <span>symbol: {analysisSymbol || <span className="text-red-400">NONE (check URL)</span>}</span>
+            {" · "}
+            <span className="text-slate-400 text-[10px]">Check DevTools console for logs</span>
+          </div>
+        </div>
+        {/* Terminal Container - takes remaining height */}
+        <div className="flex-1 overflow-hidden bg-ink">
+          <AnalysisTerminal symbolOverride={analysisSymbol} standalone={true} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full flex flex-col bg-ink">
@@ -172,17 +223,33 @@ export default function App() {
       <TickerTape data={gainers50 || []} />
 
       {/* ── Main layout ─────────────────────────────────────── */}
-      <main className="max-w-[1600px] mx-auto w-full px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+      <main className="max-w-[1600px] mx-auto w-full px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 relative">
         {/* Left / center column */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className={`${newsFeedMinimized ? "lg:col-span-3" : "lg:col-span-2"} space-y-4 transition-all duration-300`}>
           {activeTab === "markets" && <MarketDashboard />}
           {activeTab === "sectors" && <SectorHeatmap />}
+          {activeTab === "guide" && <PatternGuide />}
         </div>
 
         {/* Right column — sticky news feed */}
-        <div className="lg:col-span-1 lg:sticky lg:top-[4.5rem] h-[calc(100vh-5.5rem)]">
-          <NewsFeed />
-        </div>
+        {!newsFeedMinimized && (
+          <div className="lg:col-span-1 lg:sticky lg:top-[4.5rem] h-[calc(100vh-5.5rem)] animate-fade-in">
+            <NewsFeed onMinimize={() => setNewsFeedMinimized(true)} />
+          </div>
+        )}
+
+        {/* Floating Restore News Button — bottom-right corner tab, non-blocking */}
+        {newsFeedMinimized && (
+          <button
+            onClick={() => setNewsFeedMinimized(false)}
+            title="Expand News Feed"
+            className="fixed bottom-6 right-4 flex items-center gap-2 bg-slate-900/95 backdrop-blur-sm border border-[rgba(99,102,241,0.30)] hover:border-indigo-500/60 px-3 py-2 rounded-xl text-[11px] font-bold text-slate-400 hover:text-indigo-300 shadow-2xl z-40 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer select-none group"
+          >
+            <span className="text-sm">📰</span>
+            <span className="uppercase tracking-wider text-[10px]">News Feed</span>
+            <span className="text-indigo-500 group-hover:text-indigo-300 transition-colors">⟪</span>
+          </button>
+        )}
       </main>
 
       {/* ── Overlays ────────────────────────────────────────── */}

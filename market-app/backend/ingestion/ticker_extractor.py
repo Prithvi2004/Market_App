@@ -121,6 +121,8 @@ def search_symbols(query: str, limit: int = 10) -> list[dict]:
     q = query.lower()
     out: list[dict] = []
     seen: set[str] = set()
+    
+    # 1. Local NIFTY50 aliases match (first priority, fast)
     for alias, sym in _ALIASES.items():
         if q in alias and sym not in seen:
             seen.add(sym)
@@ -128,4 +130,43 @@ def search_symbols(query: str, limit: int = 10) -> list[dict]:
             out.append({"symbol": sym, "name": name, "exchange": "NSE"})
             if len(out) >= limit:
                 break
+                
+    # 2. Query Yahoo Finance search API for vast search (e.g. MAZDOCK)
+    if len(out) < limit:
+        import urllib.request
+        import urllib.parse
+        import json
+        try:
+            url = f"https://query2.finance.yahoo.com/v1/finance/search?q={urllib.parse.quote(query)}"
+            req = urllib.request.Request(
+                url, 
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            )
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                quotes = data.get("quotes", [])
+                for item in quotes:
+                    sym = item.get("symbol")
+                    if not sym:
+                        continue
+                    
+                    # Only include relevant types (EQUITY/INDEX) and skip duplicate matches
+                    q_type = item.get("quoteType")
+                    if q_type in ("EQUITY", "INDEX") and sym not in seen:
+                        seen.add(sym)
+                        name = item.get("longname") or item.get("shortname") or sym
+                        
+                        # Normalize exchange display name
+                        exch = item.get("exchDisp") or "NSE"
+                        if exch.upper() in ("BSE", "BOMBAY"):
+                            exch = "BSE"
+                        elif exch.upper() in ("NSE", "NSI"):
+                            exch = "NSE"
+                            
+                        out.append({"symbol": sym, "name": name, "exchange": exch})
+                        if len(out) >= limit:
+                            break
+        except Exception as e:
+            log.warning("Yahoo Finance search failed: %s", e)
+            
     return out

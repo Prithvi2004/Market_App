@@ -32,9 +32,17 @@ function ChartTooltip({ active, payload, label, range }) {
   const d = payload[0]?.payload;
   if (!d) return null;
 
-  const fmt = range === "1D"
-    ? new Date(label).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-    : new Date(label).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: range === "1Y" ? "2-digit" : undefined });
+  const fmt =
+    range === "1D"
+      ? new Date(label).toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : new Date(label).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: range === "1Y" ? "2-digit" : undefined,
+        });
 
   return (
     <div className="glass-card px-3 py-2.5 text-xs space-y-1 min-w-[140px]">
@@ -43,19 +51,25 @@ function ChartTooltip({ active, payload, label, range }) {
         {d.o != null && (
           <>
             <span className="text-muted">Open</span>
-            <span className="text-slate-200 text-right tabular-nums">{formatINR(d.o)}</span>
+            <span className="text-slate-200 text-right tabular-nums">
+              {formatINR(d.o)}
+            </span>
           </>
         )}
         {d.h != null && (
           <>
             <span className="text-muted">High</span>
-            <span className="text-bull text-right tabular-nums">{formatINR(d.h)}</span>
+            <span className="text-bull text-right tabular-nums">
+              {formatINR(d.h)}
+            </span>
           </>
         )}
         {d.l != null && (
           <>
             <span className="text-muted">Low</span>
-            <span className="text-bear text-right tabular-nums">{formatINR(d.l)}</span>
+            <span className="text-bear text-right tabular-nums">
+              {formatINR(d.l)}
+            </span>
           </>
         )}
         <span className="text-muted">Close</span>
@@ -78,7 +92,7 @@ function ChartTooltip({ active, payload, label, range }) {
 // ─── 52-week range slider ─────────────────────────────────────────────────────
 function Range52W({ price, high, low }) {
   const range = (high ?? 0) - (low ?? 0);
-  const pct   = range > 0 ? (((price ?? 0) - (low ?? 0)) / range) * 100 : 50;
+  const pct = range > 0 ? (((price ?? 0) - (low ?? 0)) / range) * 100 : 50;
   const clamped = Math.max(2, Math.min(98, pct));
 
   return (
@@ -92,7 +106,8 @@ function Range52W({ price, high, low }) {
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
             width: `${clamped}%`,
-            background: "linear-gradient(90deg, #f43f5e 0%, #f59e0b 50%, #10b981 100%)",
+            background:
+              "linear-gradient(90deg, #f43f5e 0%, #f59e0b 50%, #10b981 100%)",
           }}
         />
       </div>
@@ -114,7 +129,9 @@ function StatBox({ label, value, colorCls }) {
   return (
     <div className="bg-surface/60 rounded-lg p-2.5 border border-[rgba(99,102,241,0.08)]">
       <div className="text-[10px] text-muted mb-1">{label}</div>
-      <div className={`text-sm font-semibold tabular-nums ${colorCls || "text-slate-200"}`}>
+      <div
+        className={`text-sm font-semibold tabular-nums ${colorCls || "text-slate-200"}`}
+      >
         {value}
       </div>
     </div>
@@ -123,15 +140,15 @@ function StatBox({ label, value, colorCls }) {
 
 // ─── StockDetail ─────────────────────────────────────────────────────────────
 export default function StockDetail() {
-  const symbol          = useStore((s) => s.selectedSymbol);
+  const symbol = useStore((s) => s.selectedSymbol);
   const setSelectedSymbol = useStore((s) => s.setSelectedSymbol);
-  const resetExplain    = useStore((s) => s.resetExplain);
+  const resetExplain = useStore((s) => s.resetExplain);
 
   const [range, setRange] = useState("1D");
 
   const { data: q, isLoading } = useQuote(symbol);
-  const { data: chart }        = useChart(symbol, range);
-  const { data: news }         = useTickerNews(symbol, 8);
+  const { data: chart } = useChart(symbol, range);
+  const { data: news } = useTickerNews(symbol, 8);
 
   // Reset explainer when a new symbol opens
   useEffect(() => {
@@ -144,9 +161,10 @@ export default function StockDetail() {
   if (!symbol) return null;
 
   const chartColor = (q?.change_pct ?? 0) >= 0 ? "#10b981" : "#f43f5e";
-  const chartGradient = (q?.change_pct ?? 0) >= 0
-    ? "rgba(16,185,129,0.15)"
-    : "rgba(244,63,94,0.15)";
+  const chartGradient =
+    (q?.change_pct ?? 0) >= 0
+      ? "rgba(16,185,129,0.15)"
+      : "rgba(244,63,94,0.15)";
 
   // Y-axis formatter
   const yFmt = (v) => {
@@ -181,15 +199,33 @@ export default function StockDetail() {
                   </span>
                 )}
               </div>
-              <div className="font-mono text-xs text-muted mt-0.5">{symbol}</div>
+              <div className="font-mono text-xs text-muted mt-0.5">
+                {symbol}
+              </div>
             </div>
-            <button
-              onClick={() => setSelectedSymbol(null)}
-              className="text-muted hover:text-slate-100 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-all text-xl leading-none shrink-0"
-              aria-label="Close"
-            >
-              ×
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("analysis", "1");
+                    url.searchParams.set("symbol", symbol);
+                    window.open(url.toString(), "_blank", "noopener,noreferrer");
+                    setSelectedSymbol(null);
+                  }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 bg-violet-500/15 text-violet-300 border border-violet-500/30 hover:bg-violet-500/25 hover:border-violet-400/50"
+                title="Open full analysis in a new tab"
+              >
+                <span>⤢</span>
+                <span className="hidden sm:inline">Full Analysis</span>
+              </button>
+              <button
+                onClick={() => setSelectedSymbol(null)}
+                className="text-muted hover:text-slate-100 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-all text-xl leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
 
@@ -214,15 +250,23 @@ export default function StockDetail() {
                   <span className="text-4xl font-bold text-slate-100 tabular-nums">
                     {formatINR(q.price)}
                   </span>
-                  <span className={`text-lg font-semibold tabular-nums ${colorClass(q.change_pct)}`}>
+                  <span
+                    className={`text-lg font-semibold tabular-nums ${colorClass(q.change_pct)}`}
+                  >
                     {formatSigned(q.change)} ({formatPct(q.change_pct)})
                   </span>
                 </div>
 
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                  <StatBox label="Volume" value={q.volume?.toLocaleString("en-IN") ?? "—"} />
-                  <StatBox label="Market Cap" value={formatIndianNumber(q.market_cap)} />
+                  <StatBox
+                    label="Volume"
+                    value={q.volume?.toLocaleString("en-IN") ?? "—"}
+                  />
+                  <StatBox
+                    label="Market Cap"
+                    value={formatIndianNumber(q.market_cap)}
+                  />
                   <StatBox
                     label="52W High"
                     value={formatINR(q.high_52w)}
@@ -236,21 +280,21 @@ export default function StockDetail() {
                 </div>
 
                 {/* 52W Range */}
-                <Range52W
-                  price={q.price}
-                  high={q.high_52w}
-                  low={q.low_52w}
-                />
+                <Range52W price={q.price} high={q.high_52w} low={q.low_52w} />
               </>
             ) : (
-              <p className="text-sm text-muted">No quote yet — wait for next poll.</p>
+              <p className="text-sm text-muted">
+                No quote yet — wait for next poll.
+              </p>
             )}
           </div>
 
           {/* Chart */}
           <div className="glass-card p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-slate-200">Price Chart</h3>
+              <h3 className="text-sm font-semibold text-slate-200">
+                Price Chart
+              </h3>
               <div className="flex gap-1 p-0.5 bg-slate-800/60 rounded-lg border border-slate-700/50">
                 {RANGES.map((r) => (
                   <button
@@ -276,9 +320,23 @@ export default function StockDetail() {
                     margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
                   >
                     <defs>
-                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor={chartColor} stopOpacity={0.35} />
-                        <stop offset="95%" stopColor={chartColor} stopOpacity={0.03} />
+                      <linearGradient
+                        id="chartGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor={chartColor}
+                          stopOpacity={0.35}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor={chartColor}
+                          stopOpacity={0.03}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -327,7 +385,12 @@ export default function StockDetail() {
                       }}
                     />
                     {/* Volume bars (hidden but data present for tooltip) */}
-                    <Bar dataKey="v" fill="rgba(99,102,241,0.12)" radius={1} maxBarSize={4} />
+                    <Bar
+                      dataKey="v"
+                      fill="rgba(99,102,241,0.12)"
+                      radius={1}
+                      maxBarSize={4}
+                    />
                     {/* Glowing Area Fill */}
                     <Area
                       type="monotone"
@@ -347,7 +410,7 @@ export default function StockDetail() {
                     />
                     {/* Opening price reference */}
                     {chart[0]?.o && (
-                       <ReferenceLine
+                      <ReferenceLine
                         y={chart[0].o}
                         stroke="rgba(99,102,241,0.3)"
                         strokeDasharray="4 2"
@@ -395,8 +458,8 @@ export default function StockDetail() {
                           a.sentiment_label === "positive"
                             ? "text-bull"
                             : a.sentiment_label === "negative"
-                            ? "text-bear"
-                            : "text-muted"
+                              ? "text-bear"
+                              : "text-muted"
                         }`}
                       >
                         {a.sentiment_label}

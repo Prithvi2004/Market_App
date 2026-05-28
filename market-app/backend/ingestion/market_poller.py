@@ -1,4 +1,4 @@
-"""Poll yfinance in batches → Redis + SQLite. Optimized to use fast_info exclusively for blazing-fast speed."""
+"""Poll yfinance in batches → Redis + SQLite. Optimized to use fast_info for speed."""
 from __future__ import annotations
 
 import logging
@@ -19,6 +19,9 @@ log = logging.getLogger(__name__)
 
 _last_poll_time: Optional[datetime] = None
 
+# Real BSE equivalents of NIFTY50 symbols (.NS → .BO)
+BSE_NIFTY50 = [sym.replace(".NS", ".BO") for sym in NIFTY50]
+
 
 def get_last_poll_time() -> Optional[datetime]:
     return _last_poll_time
@@ -29,20 +32,27 @@ def _chunks(seq, n):
         yield seq[i:i + n]
 
 
-def _quote_from_info(symbol: str, info: dict, fast: dict) -> Optional[Quote]:
+def _quote_from_fast(symbol: str, fast: dict, info: dict) -> Optional[Quote]:
+    """Build a Quote from fast_info + optional info dict."""
     try:
         price = fast.get("last_price") or info.get("regularMarketPrice") or info.get("currentPrice")
-        prev = fast.get("previous_close") or info.get("regularMarketPreviousClose") or info.get("previousClose")
+        prev  = fast.get("previous_close") or info.get("regularMarketPreviousClose") or info.get("previousClose")
         if price is None or prev is None:
             return None
         change = price - prev
         change_pct = (change / prev * 100) if prev else 0.0
-        
-        # Use our statically defined metadata in config.py for names & sectors to avoid yfinance info requests
-        name, _ = SYMBOL_META.get(symbol, (info.get("shortName") or info.get("longName") or symbol, ""))
-        if symbol in INDEX_NAMES:
+
+        # Use static metadata for NSE symbols; derive from yfinance for BSE
+        bse_sym = symbol.replace(".BO", ".NS")
+        if symbol.endswith(".NS") and symbol in SYMBOL_META:
+            name, _ = SYMBOL_META[symbol]
+        elif symbol.endswith(".BO") and bse_sym in SYMBOL_META:
+            name, _ = SYMBOL_META[bse_sym]
+        elif symbol in INDEX_NAMES:
             name = INDEX_NAMES[symbol]
-            
+        else:
+            name = info.get("shortName") or info.get("longName") or symbol
+
         exchange = "INDEX" if symbol.startswith("^") else ("NSE" if symbol.endswith(".NS") else "BSE")
         return Quote(
             symbol=symbol,
@@ -52,9 +62,9 @@ def _quote_from_info(symbol: str, info: dict, fast: dict) -> Optional[Quote]:
             change=float(change),
             change_pct=float(change_pct),
             volume=int(fast.get("last_volume") or info.get("regularMarketVolume") or 0),
-            high_52w=float(info.get("fiftyTwoWeekHigh") or fast.get("year_high") or price),
-            low_52w=float(info.get("fiftyTwoWeekLow") or fast.get("year_low") or price),
-            market_cap=info.get("marketCap") or fast.get("market_cap"),
+            high_52w=float(fast.get("year_high") or info.get("fiftyTwoWeekHigh") or price),
+            low_52w=float(fast.get("year_low") or info.get("fiftyTwoWeekLow") or price),
+            market_cap=fast.get("market_cap") or info.get("marketCap"),
             timestamp=now_ist(),
             stale=not is_market_open(),
         )
@@ -64,7 +74,7 @@ def _quote_from_info(symbol: str, info: dict, fast: dict) -> Optional[Quote]:
 
 
 def _fetch_ticker_safe(sym: str) -> tuple[dict, dict]:
-    """Fetch fast_info with one retry on 429/connection errors (skipping heavy info requests)."""
+    """Fetch fast_info with one retry on 429/connection errors."""
     for attempt in range(2):
         try:
             t = yf.Ticker(sym)
@@ -86,147 +96,110 @@ def _fetch_ticker_safe(sym: str) -> tuple[dict, dict]:
             err = str(e).lower()
             if "429" in err or "rate" in err or "connection" in err:
                 if attempt == 0:
-                    log.warning("Rate-limit/connection hit for %s, backing off 5s", sym)
-                    _time.sleep(5)
+                    wait = 10 if "429" in err else 5
+                    log.warning("Rate-limit/connection hit for %s, backing off %ds", sym, wait)
+                    _time.sleep(wait)
                     continue
             raise
     return {}, {}
 
 
+def _poll_symbol_batch(symbols: list[str]) -> dict[str, Quote]:
+    """Poll a batch of symbols via yfinance Tickers, return dict of symbol→Quote."""
+    quotes: dict[str, Quote] = {}
+    try:
+        tickers_obj = yf.Tickers(" ".join(symbols))
+    except Exception as e:
+        log.warning("yfinance Tickers init failed: %s", e)
+        tickers_obj = None
+
+    for sym in symbols:
+        try:
+            fast, info = {}, {}
+            if tickers_obj:
+                t = tickers_obj.tickers.get(sym)
+                if t:
+                    try:
+                        fi = t.fast_info
+                        fast = {
+                            "last_price": getattr(fi, "last_price", None),
+                            "previous_close": getattr(fi, "previous_close", None),
+                            "last_volume": getattr(fi, "last_volume", None),
+                            "year_high": getattr(fi, "year_high", None),
+                            "year_low": getattr(fi, "year_low", None),
+                            "market_cap": getattr(fi, "market_cap", None),
+                        }
+                    except Exception:
+                        pass
+            else:
+                fast, info = _fetch_ticker_safe(sym)
+
+            q = _quote_from_fast(sym, fast, info)
+            if q is None:
+                # Mark existing cache as stale rather than removing it
+                cached = cache_get(f"quote:{sym}")
+                if cached:
+                    cached["stale"] = True
+                    cache_set(f"quote:{sym}", cached, ttl=600)
+                continue
+            quotes[sym] = q
+            cache_set(f"quote:{sym}", q.model_dump(), ttl=settings.quote_ttl)
+        except Exception as e:
+            log.debug("per-symbol fetch failed for %s: %s", sym, e)
+
+    return quotes
+
+
 def poll_quotes() -> None:
     global _last_poll_time
     log.info("Polling quotes (market_open=%s)", is_market_open())
-    symbols = INDICES + NIFTY50
-    quotes: dict[str, Quote] = {}
 
-    for batch in _chunks(symbols, 50):
-        try:
-            # yf.Tickers does one batch request for fast_info
-            tickers_obj = yf.Tickers(" ".join(batch))
-        except Exception as e:
-            log.warning("yfinance Tickers init failed: %s", e)
-            tickers_obj = None
+    # ── Poll Indices ──
+    all_symbols = INDICES + NIFTY50 + BSE_NIFTY50
+    nse_quotes: dict[str, Quote] = {}
+    bse_quotes: dict[str, Quote] = {}
 
-        for sym in batch:
-            try:
-                fast = {}
-                info = {}
-                if tickers_obj:
-                    t = tickers_obj.tickers.get(sym)
-                    if t:
-                        try:
-                            # Accessing fast_info is rapid (no new HTTP requests)
-                            fi = t.fast_info
-                            fast = {
-                                "last_price": getattr(fi, "last_price", None),
-                                "previous_close": getattr(fi, "previous_close", None),
-                                "last_volume": getattr(fi, "last_volume", None),
-                                "year_high": getattr(fi, "year_high", None),
-                                "year_low": getattr(fi, "year_low", None),
-                                "market_cap": getattr(fi, "market_cap", None),
-                            }
-                        except Exception:
-                            pass
-                else:
-                    fast, info = _fetch_ticker_safe(sym)
-                
-                # Build quote using the rapid fast_info cache data
-                q = _quote_from_info(sym, info, fast)
-                if q is None:
-                    cached = cache_get(f"quote:{sym}")
-                    if cached:
-                        cached["stale"] = True
-                        cache_set(f"quote:{sym}", cached, ttl=600)
-                    continue
-                quotes[sym] = q
-                cache_set(f"quote:{sym}", q.model_dump(), ttl=settings.quote_ttl)
+    for batch in _chunks(INDICES + NIFTY50, 50):
+        result = _poll_symbol_batch(batch)
+        for sym, q in result.items():
+            if sym in NIFTY50:
+                nse_quotes[sym] = q
+            # Indices cached inside _poll_symbol_batch already
 
-                # Statically cache BSE counterpart with tiny realistic arbitrage variation
-                if sym.endswith(".NS"):
-                    bse_sym = sym.replace(".NS", ".BO")
-                    import random
-                    var = random.uniform(-0.03, 0.03)
-                    bse_price = round(q.price * (1 + var / 100), 2)
-                    bse_change_pct = q.change_pct + var
-                    bse_change = bse_price - (bse_price / (1 + bse_change_pct / 100))
-                    
-                    bse_q = Quote(
-                        symbol=bse_sym,
-                        name=q.name,
-                        exchange="BSE",
-                        price=float(bse_price),
-                        change=float(bse_change),
-                        change_pct=float(bse_change_pct),
-                        volume=q.volume,
-                        high_52w=float(round(q.high_52w * (1 + var / 100), 2)),
-                        low_52w=float(round(q.low_52w * (1 + var / 100), 2)),
-                        market_cap=q.market_cap,
-                        timestamp=q.timestamp,
-                        stale=q.stale,
-                    )
-                    cache_set(f"quote:{bse_sym}", bse_q.model_dump(), ttl=settings.quote_ttl)
-            except Exception as e:
-                log.debug("per-symbol fetch failed for %s: %s", sym, e)
+    # ── Poll BSE (real .BO data) in separate batches ──
+    for batch in _chunks(BSE_NIFTY50, 30):  # smaller batches for BSE
+        result = _poll_symbol_batch(batch)
+        for sym, q in result.items():
+            bse_quotes[sym] = q
 
-    # Indices snapshot
-    idx_list = [quotes[s].model_dump() for s in INDICES if s in quotes]
+    # ── NSE indices snapshot ──
+    idx_list = [cache_get(f"quote:{s}") for s in INDICES]
+    idx_list = [q for q in idx_list if q]
     if idx_list:
         cache_set("indices", idx_list, ttl=settings.quote_ttl)
 
-    # Gainers / losers across NIFTY50
-    n50 = [quotes[s] for s in NIFTY50 if s in quotes]
+    # ── NSE Gainers / Losers ──
+    n50 = list(nse_quotes.values())
     if n50:
         n50_sorted = sorted(n50, key=lambda q: q.change_pct, reverse=True)
         gainers = [q.model_dump() for q in n50_sorted[:10]]
-        losers = [q.model_dump() for q in sorted(n50, key=lambda q: q.change_pct)[:10]]
+        losers  = [q.model_dump() for q in sorted(n50, key=lambda q: q.change_pct)[:10]]
         cache_set("gainers:NSE", gainers, ttl=settings.quote_ttl)
         cache_set("losers:NSE", losers, ttl=settings.quote_ttl)
-        # also cache all N50 for portfolio valuation
-        all_quotes = {q.symbol: q.model_dump() for q in n50}
-        cache_set("all_quotes:NSE", all_quotes, ttl=settings.quote_ttl)
+        cache_set("all_quotes:NSE", {q.symbol: q.model_dump() for q in n50}, ttl=settings.quote_ttl)
 
-        # Create BSE equivalents
-        import random
-        bse_gainers = []
-        for g in gainers:
-            bg = g.copy()
-            bg["symbol"] = bg["symbol"].replace(".NS", ".BO")
-            bg["exchange"] = "BSE"
-            var = random.uniform(-0.03, 0.03)
-            bg["price"] = round(bg["price"] * (1 + var / 100), 2)
-            bg["change_pct"] = bg["change_pct"] + var
-            bg["change"] = bg["price"] - (bg["price"] / (1 + bg["change_pct"] / 100))
-            bse_gainers.append(bg)
-            
-        bse_losers = []
-        for l in losers:
-            bl = l.copy()
-            bl["symbol"] = bl["symbol"].replace(".NS", ".BO")
-            bl["exchange"] = "BSE"
-            var = random.uniform(-0.03, 0.03)
-            bl["price"] = round(bl["price"] * (1 + var / 100), 2)
-            bl["change_pct"] = bl["change_pct"] + var
-            bl["change"] = bl["price"] - (bl["price"] / (1 + bl["change_pct"] / 100))
-            bse_losers.append(bl)
-            
+    # ── BSE Gainers / Losers (real data) ──
+    b50 = list(bse_quotes.values())
+    if b50:
+        b50_sorted = sorted(b50, key=lambda q: q.change_pct, reverse=True)
+        bse_gainers = [q.model_dump() for q in b50_sorted[:10]]
+        bse_losers  = [q.model_dump() for q in sorted(b50, key=lambda q: q.change_pct)[:10]]
         cache_set("gainers:BSE", bse_gainers, ttl=settings.quote_ttl)
         cache_set("losers:BSE", bse_losers, ttl=settings.quote_ttl)
-        
-        bse_all_quotes = {}
-        for sym, q_data in all_quotes.items():
-            bq_data = q_data.copy()
-            bq_data["symbol"] = bq_data["symbol"].replace(".NS", ".BO")
-            bq_data["exchange"] = "BSE"
-            var = random.uniform(-0.03, 0.03)
-            bq_data["price"] = round(bq_data["price"] * (1 + var / 100), 2)
-            bq_data["change_pct"] = bq_data["change_pct"] + var
-            bq_data["change"] = bq_data["price"] - (bq_data["price"] / (1 + bq_data["change_pct"] / 100))
-            bse_all_quotes[bq_data["symbol"]] = bq_data
-            
-        cache_set("all_quotes:BSE", bse_all_quotes, ttl=settings.quote_ttl)
+        cache_set("all_quotes:BSE", {q.symbol: q.model_dump() for q in b50}, ttl=settings.quote_ttl)
 
     _last_poll_time = now_ist()
-    log.info("Polled %d symbols successfully", len(quotes))
+    log.info("Polled %d NSE + %d BSE symbols", len(nse_quotes), len(bse_quotes))
 
 
 def persist_daily_ohlcv() -> None:

@@ -111,7 +111,7 @@ function SkeletonArticles() {
 }
 
 // ─── News Feed ────────────────────────────────────────────────────────────────
-export default function NewsFeed() {
+export default function NewsFeed({ onMinimize }) {
   const newsFilter = useStore((s) => s.newsFilter);
   const setNewsFilter = useStore((s) => s.setNewsFilter);
   const sectorFilter = useStore((s) => s.sectorFilter);
@@ -141,9 +141,20 @@ export default function NewsFeed() {
               <span className="w-3.5 h-3.5 rounded-full border-2 border-accent/30 border-t-accent animate-spin inline-block" />
             )}
           </h2>
-          <span className="text-[10px] text-muted">
-            {data?.length ?? "—"} articles
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted">
+              {data?.length ?? "—"} articles
+            </span>
+            {onMinimize && (
+              <button
+                onClick={onMinimize}
+                title="Minimize News Feed"
+                className="text-xs text-slate-500 hover:text-slate-200 bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 p-1 px-1.5 rounded-lg transition-all active:scale-95 leading-none shrink-0"
+              >
+                ⟫
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Category tabs */}
