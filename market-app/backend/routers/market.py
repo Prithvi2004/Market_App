@@ -13,6 +13,7 @@ from cache import cache_get, cache_set
 from config import INDEX_NAMES, INDICES, NIFTY50, SYMBOL_META
 from ingestion.ticker_extractor import search_symbols
 from market_hours import is_market_open, market_status, now_ist
+from models import PortfolioRiskRequest
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -304,32 +305,41 @@ def get_fundamentals(symbol: str):
 
 @router.get("/peers/{symbol}")
 def get_peers(symbol: str):
-    """Return same-sector NIFTY50 peers with their cached quotes, sorted by market cap."""
+    """Return same-sector NIFTY50 peers with their quotes, sorted by market cap."""
     # Normalize: accept both .NS and .BO
     ns_sym = symbol.replace(".BO", ".NS")
     sector = SYMBOL_META.get(ns_sym, (symbol, None))[1]
     if not sector:
         return []
+    
+    # Expand peer groups for sectors with single representatives
+    sector_group = {sector}
+    if sector in ("Healthcare", "Pharma"):
+        sector_group = {"Healthcare", "Pharma"}
+        
     peers = [
         s for s in NIFTY50
-        if SYMBOL_META.get(s, (s, None))[1] == sector and s != ns_sym
+        if SYMBOL_META.get(s, (s, None))[1] in sector_group and s != ns_sym
     ]
     result = []
     for s in peers:
-        q = cache_get(f"quote:{s}")
-        if q:
-            result.append({
-                "symbol": s,
-                "name": SYMBOL_META.get(s, (s, ""))[0],
-                "sector": sector,
-                "price": q.get("price"),
-                "change": q.get("change"),
-                "change_pct": q.get("change_pct"),
-                "market_cap": q.get("market_cap"),
-                "volume": q.get("volume"),
-                "high_52w": q.get("high_52w"),
-                "low_52w": q.get("low_52w"),
-            })
+        try:
+            q = get_quote(s)
+            if q:
+                result.append({
+                    "symbol": s,
+                    "name": SYMBOL_META.get(s, (s, ""))[0],
+                    "sector": sector,
+                    "price": q.get("price"),
+                    "change": q.get("change"),
+                    "change_pct": q.get("change_pct"),
+                    "market_cap": q.get("market_cap"),
+                    "volume": q.get("volume"),
+                    "high_52w": q.get("high_52w"),
+                    "low_52w": q.get("low_52w"),
+                })
+        except Exception:
+            pass
     return sorted(result, key=lambda x: x.get("market_cap") or 0, reverse=True)
 
 
@@ -469,7 +479,7 @@ def get_indicators(symbol: str, range: str = "3M"):
 # ---------- Added for Advanced Analytics Suite ----------
 
 @router.post("/portfolio/risk")
-def get_portfolio_risk(req: models.PortfolioRiskRequest):
+def get_portfolio_risk(req: PortfolioRiskRequest):
     """Calculate portfolio risk: Beta, correlation matrix, and 30-day Monte Carlo."""
     from utils.risk_engine import calculate_risk_metrics
     

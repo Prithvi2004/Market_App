@@ -13,6 +13,10 @@ BENCHMARK_TICKER = "^NSEI"  # NIFTY 50 on Yahoo Finance
 
 def get_historical_returns(symbols: list[str], period: str = "1y") -> tuple[pd.DataFrame, pd.Series]:
     """Fetch historical daily close prices and compute returns for symbols and the Nifty 50 benchmark."""
+    # Normalize period abbreviations to yfinance format
+    period_map = {"1m": "1mo", "3m": "3mo", "6m": "6mo"}
+    period = period_map.get(period.lower(), period)
+    
     all_symbols = list(set(symbols + [BENCHMARK_TICKER]))
     
     # Try caching the returns data for 1 hour to prevent constant yfinance querying

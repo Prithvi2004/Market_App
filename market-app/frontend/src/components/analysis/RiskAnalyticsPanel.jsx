@@ -209,9 +209,9 @@ export default function RiskAnalyticsPanel() {
           <table className="w-full text-[10.5px] border-collapse font-mono text-center">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.06)]">
-                <th className="py-2 text-left font-sans text-[9px] text-[#7a7060] uppercase tracking-wider">Asset</th>
+                <th className="py-2 text-left font-sans text-[9px] text-[#7a7060] uppercase tracking-wider min-w-[80px]">Asset</th>
                 {correlation_matrix.map((row) => (
-                  <th key={row.symbol} className="py-2 px-1 text-slate-300">
+                  <th key={row.symbol} className="py-2 px-1 text-slate-300 min-w-[70px]">
                     {row.symbol.replace(".NS", "")}
                   </th>
                 ))}

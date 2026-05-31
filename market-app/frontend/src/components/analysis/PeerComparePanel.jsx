@@ -110,7 +110,7 @@ export default function PeerComparePanel({ symbol }) {
       <tr className="border-b border-[rgba(255,255,255,0.03)] hover:bg-white/[0.01]">
         <td className="py-2 text-left font-sans font-medium text-slate-500 uppercase tracking-wider text-[9px]">{label}</td>
         {/* Target cell */}
-        <td className="py-2 font-bold font-mono text-[#f0c56a]">{formatter(targetData[key], targetData)}</td>
+        <td className="py-2 font-bold font-mono text-[#f0c56a] text-center">{formatter(targetData[key], targetData)}</td>
         {/* Peer cells */}
         {compareSymbols.map((s) => (
           <PeerTableCellKey key={s} symbol={s} fieldKey={key} formatter={formatter} />
@@ -126,11 +126,11 @@ export default function PeerComparePanel({ symbol }) {
         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(212,150,58,0.1)]">
           Compare Stock with Sector Peers (Up to 3)
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <select
             value={selectedPeerInput}
             onChange={(e) => setSelectedPeerInput(e.target.value)}
-            className="flex-1 bg-[#111110] border border-[rgba(212,150,58,0.15)] text-xs text-[#ede8df] rounded-lg px-3 py-2 outline-none min-h-[44px]"
+            className="w-full sm:flex-1 bg-[#111110] border border-[rgba(212,150,58,0.15)] text-xs text-[#ede8df] rounded-lg px-3 py-2 outline-none min-h-[44px]"
           >
             <option value="">-- Add peer stock --</option>
             {allSymbols
@@ -144,7 +144,7 @@ export default function PeerComparePanel({ symbol }) {
           <button
             onClick={handleAdd}
             disabled={!selectedPeerInput || compareSymbols.length >= 3}
-            className="btn-primary !min-h-[44px] !py-2 !px-4"
+            className="btn-primary !min-h-[44px] !py-2 !px-4 w-full sm:w-auto shrink-0"
           >
             Add Peer
           </button>
@@ -182,12 +182,12 @@ export default function PeerComparePanel({ symbol }) {
         <table className="w-full text-xs text-center border-collapse">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.06)]">
-              <th className="py-2 text-left font-sans text-[9px] text-[#7a7060] uppercase tracking-wider">Metric</th>
-              <th className="py-2 text-[#f0c56a] font-mono uppercase font-black">
+              <th className="py-2 text-left font-sans text-[9px] text-[#7a7060] uppercase tracking-wider min-w-[100px]">Metric</th>
+              <th className="py-2 text-[#f0c56a] font-mono uppercase font-black text-center min-w-[125px]">
                 {symbol.replace(".NS", "")} [TGT]
               </th>
               {compareSymbols.map((s) => (
-                <th key={s} className="py-2 text-slate-300 font-mono uppercase font-bold flex-col relative">
+                <th key={s} className="py-2 text-slate-300 font-mono uppercase font-bold text-center relative min-w-[125px]">
                   <span className="block">{s.replace(".NS", "")}</span>
                 </th>
               ))}
@@ -196,15 +196,18 @@ export default function PeerComparePanel({ symbol }) {
           <tbody>
             <tr className="border-b border-[rgba(255,255,255,0.03)]">
               <td className="py-2 text-left font-sans font-medium text-slate-500 uppercase tracking-wider text-[9px]">Name</td>
-              <td className="py-2 font-semibold text-slate-200 line-clamp-1 max-w-[120px] text-left">{targetData.name}</td>
+              <td className="py-2 font-semibold text-slate-200 text-center">
+                <div className="line-clamp-1 max-w-[120px] mx-auto">{targetData.name}</div>
+              </td>
               {compareSymbols.map((s) => (
                 <PeerTableCellName key={s} symbol={s} />
               ))}
             </tr>
             {renderRow("Price", "price", (v) => (v ? formatINR(v) : "—"))}
             {renderRow("Change %", "change_pct", (v) => {
+              if (v === undefined || v === null) return "—";
               const isPos = v >= 0;
-              return <span className={isPos ? "text-emerald-400" : "text-rose-400"}>{isPos ? "+" : ""}{v.toFixed(2)}%</span>;
+              return <span className={isPos ? "text-emerald-400" : "text-rose-400"}>{isPos ? "+" : ""}{Number(v).toFixed(2)}%</span>;
             })}
             {renderRow("P/E Ratio", "pe_ratio", (v) => (v ? Number(v).toFixed(1) : "—"))}
             {renderRow("P/B Ratio", "pb_ratio", (v) => (v ? Number(v).toFixed(2) : "—"))}
@@ -261,7 +264,11 @@ export default function PeerComparePanel({ symbol }) {
 // Sub-component to fetch and render name safely
 function PeerTableCellName({ symbol }) {
   const { data: q } = useQuote(symbol);
-  return <td className="py-2 text-slate-300 line-clamp-1 max-w-[120px] text-left">{q?.name || "—"}</td>;
+  return (
+    <td className="py-2 text-slate-300 text-center">
+      <div className="line-clamp-1 max-w-[120px] mx-auto">{q?.name || "—"}</div>
+    </td>
+  );
 }
 
 // Sub-component to fetch and render cell metrics safely
@@ -281,5 +288,5 @@ function PeerTableCellKey({ symbol, fieldKey, formatter }) {
   };
   
   const val = metrics[fieldKey];
-  return <td className="py-2 font-mono text-slate-300">{formatter(val, { price: q?.price })}</td>;
+  return <td className="py-2 font-mono text-slate-300 text-center">{formatter(val, { price: q?.price })}</td>;
 }

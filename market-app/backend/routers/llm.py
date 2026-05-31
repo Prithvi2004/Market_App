@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from cache import cache_get
 from llm.explainer import build_prompt, stream_explain
 from llm.impact_analyzer import stream_impact
-from models import ExplainRequest, ImpactRequest
+from models import ExplainRequest, ImpactRequest, CopilotChatRequest, CompareExplainRequest
 from routers.news import get_news
 
 router = APIRouter()
@@ -72,7 +72,7 @@ async def impact(req: ImpactRequest):
 # ---------- Added for Advanced Analytics Suite ----------
 
 @router.post("/copilot/chat")
-async def copilot_chat(req: models.CopilotChatRequest):
+async def copilot_chat(req: CopilotChatRequest):
     """Interactive streaming chat with the AI Analyst about a specific stock."""
     from llm.copilot import stream_copilot
     from routers.market import get_quote, get_fundamentals
@@ -102,7 +102,7 @@ async def copilot_chat(req: models.CopilotChatRequest):
 
 
 @router.post("/compare/explain")
-async def compare_explain(req: models.CompareExplainRequest):
+async def compare_explain(req: CompareExplainRequest):
     """Generate a comparative analysis report comparing target stock with its peers."""
     from llm.compare_synthesizer import stream_compare
     from routers.market import get_quote, get_fundamentals

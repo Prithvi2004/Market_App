@@ -200,6 +200,20 @@ export default function CopilotChat({ symbol }) {
             </div>
           )}
 
+          {/* Loading/Thinking indicator */}
+          {loading && !streamingText && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] rounded-xl p-3.5 text-[11.5px] leading-relaxed border bg-[#111110]/80 border-[rgba(255,255,255,0.03)] text-slate-400 flex items-center gap-2 font-sans">
+                <span className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4963a] animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4963a] animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4963a] animate-bounce" />
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">Co-Pilot is analyzing...</span>
+              </div>
+            </div>
+          )}
+
           <div ref={chatEndRef} />
         </div>
       ) : null}
