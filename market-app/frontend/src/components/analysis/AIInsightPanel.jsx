@@ -26,7 +26,7 @@ function parseInsightText(raw) {
         val === "medium" ? "text-amber-400" :
         "text-rose-400";
       elements.push(
-        <div key={key++} className="flex items-center gap-2 mt-3 pt-3 border-t border-[rgba(99,102,241,0.1)]">
+        <div key={key++} className="flex items-center gap-2 mt-3 pt-3 border-t border-[rgba(212,150,58,0.1)]">
           <span className="text-[10px] text-muted uppercase tracking-wider">Confidence</span>
           <span className={`text-xs font-bold uppercase ${color}`}>{val}</span>
         </div>
@@ -59,7 +59,7 @@ function SignalPill({ label, value, color }) {
     red:    { bg: "bg-rose-500/10",    border: "border-rose-500/25",    text: "text-rose-400" },
     amber:  { bg: "bg-amber-500/10",   border: "border-amber-500/25",   text: "text-amber-400" },
     violet: { bg: "bg-violet-500/10",  border: "border-violet-500/25",  text: "text-violet-400" },
-    slate:  { bg: "bg-slate-800",      border: "border-slate-700",      text: "text-slate-400" },
+    slate:  { bg: "bg-slate-800",      border: "border-[rgba(212,150,58,0.12)]",      text: "text-slate-400" },
   };
   const c = colors[color] ?? colors.slate;
   return (
@@ -180,11 +180,20 @@ export default function AIInsightPanel({ symbol, quote, candles, indicators, pat
     setText("");
     setTriggered(false);
     setLoading(false);
-    if (abortRef.current) abortRef.current.abort();
+    // Abort any in-flight SSE stream when the symbol changes
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
   }, [symbol]);
 
   async function runExplain() {
     if (loading) return;
+    // Cancel any previous in-flight stream
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setText("");
     setTriggered(true);
@@ -199,10 +208,13 @@ export default function AIInsightPanel({ symbol, quote, candles, indicators, pat
               setText((t) => t + `\n\nConfidence: ${d.confidence}`);
             }
           },
-        }
+        },
+        controller.signal
       );
     } catch (err) {
-      setText("⚠️ AI analysis unavailable. Check Ollama is running.");
+      if (err.name !== "AbortError") {
+        setText("⚠️ AI analysis unavailable. Check Ollama is running.");
+      }
     } finally {
       setLoading(false);
     }
@@ -225,7 +237,7 @@ export default function AIInsightPanel({ symbol, quote, candles, indicators, pat
       />
 
       {/* Divider */}
-      <div className="border-t border-[rgba(99,102,241,0.1)] pt-3">
+      <div className="border-t border-[rgba(212,150,58,0.1)] pt-3">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] text-slate-400">LLM Price Interpretation</span>
           <button
@@ -248,7 +260,7 @@ export default function AIInsightPanel({ symbol, quote, candles, indicators, pat
 
         {triggered && (
           <div
-            className={`rounded-xl p-4 bg-black/30 border border-[rgba(99,102,241,0.1)] text-sm space-y-2 min-h-[60px] ${loading && !text ? "flex items-center justify-center" : ""}`}
+            className={`rounded-xl p-4 bg-black/30 border border-[rgba(212,150,58,0.1)] text-sm space-y-2 min-h-[60px] ${loading && !text ? "flex items-center justify-center" : ""}`}
           >
             {loading && !text ? (
               <div className="flex items-center gap-2 text-muted text-xs">

@@ -23,7 +23,7 @@ function shade(pct) {
   }
   return {
     background: "rgba(30,41,59,0.45)",
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(212,150,58,0.1)",
     color: "#64748b",
   };
 }
@@ -144,7 +144,7 @@ export default function SectorHeatmap() {
           : Array.from({ length: 10 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-[rgba(99,102,241,0.1)] p-3 space-y-2"
+                className="rounded-xl border border-[rgba(212,150,58,0.1)] p-3 space-y-2"
               >
                 <div className="shimmer-bg h-2.5 w-10 rounded" />
                 <div className="shimmer-bg h-4 w-14 rounded" />

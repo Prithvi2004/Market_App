@@ -17,12 +17,14 @@ function rsiSignal(v) {
   return { label: "Oversold", color: "text-emerald-400" }; // oversold = buy opp
 }
 
-// ─── MACD Interpretation ──────────────────────────────────────────────────────
-function macdSignal(hist) {
+// ─── MACD Interpretation ─────────────────────────────────────────────────────────────
+function macdSignal(hist, price) {
   if (hist == null) return { label: "—", color: "text-muted" };
-  if (hist > 0.5) return { label: "Strong Bullish", color: "text-emerald-400" };
-  if (hist > 0)   return { label: "Bullish", color: "text-emerald-300" };
-  if (hist > -0.5)return { label: "Bearish", color: "text-rose-300" };
+  // Normalize histogram as % of price so thresholds are scale-invariant
+  const threshold = price ? Math.abs(price) * 0.0005 : 0.5;
+  if (hist >  threshold * 2) return { label: "Strong Bullish", color: "text-emerald-400" };
+  if (hist >  0)             return { label: "Bullish",        color: "text-emerald-300" };
+  if (hist > -threshold * 2) return { label: "Bearish",        color: "text-rose-300" };
   return { label: "Strong Bearish", color: "text-rose-400" };
 }
 
@@ -76,7 +78,7 @@ function adxSignal(adx, diPlus, diMinus) {
     color = "text-fuchsia-400";
   } else if (adx > 25) {
     trendStrength = "Strong Trend";
-    color = "text-indigo-400";
+    color = "text-amber-500";
   }
 
   const direction = diPlus > diMinus ? "Bullish (DI+ > DI-)" : "Bearish (DI- > DI+)";
@@ -94,7 +96,7 @@ function williamsRSignal(v) {
 // ─── Row component ────────────────────────────────────────────────────────────
 function IndicatorRow({ label, value, signal, meter, meterColor }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-[rgba(99,102,241,0.07)] last:border-0">
+    <div className="flex items-center justify-between py-2.5 border-b border-[rgba(212,150,58,0.07)] last:border-0">
       <div className="min-w-0">
         <div className="text-[11px] text-muted font-medium">{label}</div>
         {signal && (
@@ -111,7 +113,7 @@ function IndicatorRow({ label, value, signal, meter, meterColor }) {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${Math.max(2, Math.min(100, meter))}%`,
-                background: meterColor || (meter > 70 ? "#f43f5e" : meter < 30 ? "#10b981" : "#6366f1"),
+                background: meterColor || (meter > 70 ? "#f43f5e" : meter < 30 ? "#10b981" : "#d4963a"),
               }}
             />
           </div>
@@ -170,7 +172,7 @@ export default function TechnicalPanel({ indicators, candles }) {
           adxVal, diPlus, diMinus, willR } = data;
 
   const rsiSig  = rsiSignal(rsiVal);
-  const macdSig = macdSignal(histVal);
+  const macdSig = macdSignal(histVal, price);
   const bbSig   = bbSignal(price, bbU, bbL, bbM);
   const emaSig  = emaAlignment(price, ema20, ema50, ema200);
   const stSig   = stochSignal(stochK, stochD);
@@ -197,7 +199,7 @@ export default function TechnicalPanel({ indicators, candles }) {
             : "—"
         }
         signal={macdSig}
-        meter={histVal != null ? Math.min(100, Math.max(0, 50 + histVal * 10)) : null}
+        meter={histVal != null && price ? Math.min(100, Math.max(0, 50 + (histVal / price) * 10000)) : null}
       />
       <IndicatorRow
         label="Bollinger Bands"
@@ -245,7 +247,7 @@ export default function TechnicalPanel({ indicators, candles }) {
         value={willR != null ? willR.toFixed(1) : "—"}
         signal={willSig}
         meter={willR != null ? Math.max(0, 100 + willR) : null}
-        meterColor={willR > -20 ? "#f43f5e" : willR < -80 ? "#10b981" : "#6366f1"}
+        meterColor={willR > -20 ? "#f43f5e" : willR < -80 ? "#10b981" : "#d4963a"}
       />
       <IndicatorRow
         label="ATR (14)"

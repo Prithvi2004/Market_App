@@ -101,14 +101,14 @@ export default function AIExplainer({ symbol }) {
   const confStyle = confidence ? CONFIDENCE_COLORS[confidence] || CONFIDENCE_COLORS.medium : null;
 
   return (
-    <div className="glass-card bg-slate-900/40 p-5 space-y-4 border-[rgba(99,102,241,0.08)]">
+    <div className="glass-card bg-[#111110]/60 p-5 space-y-4 border-[rgba(212,150,58,0.08)]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-slate-200">🤖 AI Price Explainer</span>
           {confidence && confStyle && (
             <span
-              className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border ${confStyle.bg} ${confStyle.text} ${confStyle.border} shadow-[0_0_8px_rgba(99,102,241,0.1)]`}
+              className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border ${confStyle.bg} ${confStyle.text} ${confStyle.border} shadow-[0_0_8px_rgba(212,150,58,0.1)]`}
             >
               Confidence: {confidence}
             </span>
@@ -144,7 +144,7 @@ export default function AIExplainer({ symbol }) {
       <div className="min-h-[6rem] text-xs leading-relaxed text-slate-300 font-sans relative bg-black/25 rounded-lg p-3.5 border border-white/[0.02]">
         {loading && !explainText && (
           <div className="flex items-center gap-2 text-slate-400">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_#6366f1]" />
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_#d4963a]" />
             <span>Consulting DeepSeek via Ollama cloud model...</span>
           </div>
         )}

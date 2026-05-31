@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { searchSymbols } from "../api/market.js";
 import { useStore } from "../store/useStore.js";
 
-export default function SearchBar() {
+export default function SearchBar({ autoFocus = false, onResultPicked }) {
   const [q, setQ]           = useState("");
   const [results, setResults] = useState([]);
   const [open, setOpen]     = useState(false);
@@ -76,16 +76,17 @@ export default function SearchBar() {
     setQ("");
     setOpen(false);
     inputRef.current?.blur();
+    onResultPicked?.();
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full md:w-auto">
       {/* Search input */}
       <div
-        className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 w-48 sm:w-56 ${
+        className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 w-full md:w-52 lg:w-60 ${
           focused
-            ? "border-accent/50 shadow-[0_0_0_3px_rgba(99,102,241,0.1)]"
-            : "border-[rgba(99,102,241,0.18)] hover:border-accent/35"
+            ? "border-accent/50 shadow-[0_0_0_3px_rgba(212,150,58,0.1)]"
+            : "border-[rgba(212,150,58,0.18)] hover:border-accent/35"
         } bg-surface`}
       >
         <span className="text-muted text-sm shrink-0">🔍</span>
@@ -100,9 +101,10 @@ export default function SearchBar() {
           }}
           onKeyDown={onKeyDown}
           placeholder="Search stocks…"
+          autoFocus={autoFocus}
           className="flex-1 bg-transparent text-xs text-slate-200 placeholder-muted outline-none min-w-0"
         />
-        <kbd className="hidden sm:inline text-[9px] text-muted border border-slate-700 rounded px-1 py-0.5 shrink-0 font-mono">
+        <kbd className="hidden sm:inline text-[9px] text-muted border border-[rgba(212,150,58,0.12)] rounded px-1 py-0.5 shrink-0 font-mono">
           ⌘K
         </kbd>
         {loading && (
@@ -112,12 +114,12 @@ export default function SearchBar() {
 
       {/* Dropdown */}
       {open && results.length > 0 && (
-        <div className="absolute z-50 mt-2 right-0 w-72 glass-card shadow-glow-accent overflow-hidden animate-fade-in">
+        <div className="absolute z-50 mt-2 right-0 left-0 md:left-auto md:w-72 glass-card shadow-glow-accent overflow-hidden animate-fade-in">
           {results.slice(0, 8).map((r, i) => (
             <button
               key={r.symbol}
               onMouseDown={() => pick(r)}
-              className={`w-full text-left px-4 py-2.5 flex items-center justify-between transition-colors ${
+              className={`w-full text-left px-4 py-3 flex items-center justify-between transition-colors ${
                 i === selectedIdx ? "bg-accent/10" : "hover:bg-white/[0.04]"
               }`}
             >
@@ -127,13 +129,13 @@ export default function SearchBar() {
                   {r.name?.slice(0, 28)}
                 </span>
               </div>
-              <span className="text-[9px] bg-accent/10 text-accent-light px-1.5 py-0.5 rounded border border-accent/20 shrink-0 ml-2">
+              <span className="text-[9px] bg-accent/10 text-[#f0c56a] px-1.5 py-0.5 rounded border border-accent/20 shrink-0 ml-2">
                 {r.exchange}
               </span>
             </button>
           ))}
           {results.length > 8 && (
-            <div className="px-4 py-2 text-[10px] text-muted border-t border-[rgba(99,102,241,0.06)]">
+            <div className="px-4 py-2 text-[10px] text-muted border-t border-[rgba(212,150,58,0.06)]">
               +{results.length - 8} more results
             </div>
           )}

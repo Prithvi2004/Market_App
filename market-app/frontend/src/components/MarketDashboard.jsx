@@ -60,7 +60,7 @@ function MoverRow({ q, rank, isGainer }) {
   return (
     <tr
       onClick={() => setSelectedSymbol(q.symbol)}
-      className="group cursor-pointer border-t border-[rgba(99,102,241,0.05)] hover:bg-white/[0.025] transition-colors duration-100"
+      className="group cursor-pointer border-t border-[rgba(212,150,58,0.05)] hover:bg-white/[0.025] transition-colors duration-100"
     >
       {/* Symbol + name */}
       <td className="px-3 py-2.5">
@@ -72,7 +72,7 @@ function MoverRow({ q, rank, isGainer }) {
             <div className="font-mono text-xs font-medium text-slate-300 group-hover:text-white transition-colors">
               {sym}
             </div>
-            <div className="text-[9px] text-muted truncate max-w-[110px]">
+            <div className="text-[9px] text-muted truncate max-w-[100px] sm:max-w-[140px]">
               {q.name}
             </div>
           </div>
@@ -120,7 +120,7 @@ function MoversTable({ title, rows, isGainer, loading }) {
   return (
     <div className="glass-card overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[rgba(99,102,241,0.07)] flex items-center gap-2">
+      <div className="px-3 sm:px-4 py-3 border-b border-[rgba(212,150,58,0.07)] flex items-center gap-2">
         <span className={isGainer ? "text-bull text-sm" : "text-bear text-sm"}>
           {isGainer ? "▲" : "▼"}
         </span>
@@ -130,37 +130,39 @@ function MoversTable({ title, rows, isGainer, loading }) {
         )}
       </div>
 
-      {/* Table */}
-      <table className="w-full">
-        <thead>
-          <tr className="text-[9px] uppercase tracking-widest text-muted">
-            <th className="text-left px-3 py-2 font-medium">Stock</th>
-            <th className="text-right px-3 py-2 font-medium">Price</th>
-            <th className="text-right px-3 py-2 font-medium">Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows?.length
-            ? rows.map((q, i) => (
-                <MoverRow
-                  key={q.symbol}
-                  q={q}
-                  rank={i + 1}
-                  isGainer={isGainer}
-                />
-              ))
-            : Array.from({ length: 7 }).map((_, i) => (
-                <tr
-                  key={i}
-                  className="border-t border-[rgba(99,102,241,0.05)]"
-                >
-                  <td colSpan={3} className="px-3 py-2.5">
-                    <div className="shimmer-bg h-4 rounded w-full" />
-                  </td>
-                </tr>
-              ))}
-        </tbody>
-      </table>
+      {/* Table — horizontal scroll on very small screens */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[280px]">
+          <thead>
+            <tr className="text-[9px] uppercase tracking-widest text-muted">
+              <th className="text-left px-3 py-2 font-medium">Stock</th>
+              <th className="text-right px-3 py-2 font-medium">Price</th>
+              <th className="text-right px-3 py-2 font-medium">Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows?.length
+              ? rows.map((q, i) => (
+                  <MoverRow
+                    key={q.symbol}
+                    q={q}
+                    rank={i + 1}
+                    isGainer={isGainer}
+                  />
+                ))
+              : Array.from({ length: 7 }).map((_, i) => (
+                  <tr
+                    key={i}
+                    className="border-t border-[rgba(212,150,58,0.05)]"
+                  >
+                    <td colSpan={3} className="px-3 py-2.5">
+                      <div className="shimmer-bg h-4 rounded w-full" />
+                    </td>
+                  </tr>
+                ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -205,7 +207,7 @@ function LiveClock({ fallbackTs }) {
 // ─── Exchange Toggle ──────────────────────────────────────────────────────────
 function ExchangeToggle({ value, onChange }) {
   return (
-    <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-800/60 border border-slate-700/50">
+    <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-800/60 border border-[rgba(212,150,58,0.12)]/50">
       {["NSE", "BSE"].map((ex) => (
         <button
           key={ex}

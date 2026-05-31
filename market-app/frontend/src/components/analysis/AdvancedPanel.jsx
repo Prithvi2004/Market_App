@@ -67,7 +67,7 @@ function classifyTrend(slope, closes) {
 // ─── Row Component ────────────────────────────────────────────────────────────
 function ValueRow({ label, value, subtext, color = "text-slate-300" }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-[rgba(99,102,241,0.06)] last:border-0">
+    <div className="flex items-center justify-between py-2 border-b border-[rgba(212,150,58,0.06)] last:border-0">
       <div>
         <div className="text-[11px] text-muted font-medium">{label}</div>
         {subtext && <div className="text-[9px] text-slate-500 mt-0.5">{subtext}</div>}
@@ -209,7 +209,7 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
 
   return (
     <div className="space-y-4">
-      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(99,102,241,0.1)]">
+      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(212,150,58,0.1)]">
         Advanced Model Analysis
       </div>
 
@@ -218,7 +218,7 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
         className="p-3.5 rounded-xl border space-y-2 transition-all duration-300"
         style={{
           background: trend.bg || "rgba(15,23,42,0.8)",
-          borderColor: trend.border || "rgba(99,102,241,0.1)"
+          borderColor: trend.border || "rgba(212,150,58,0.1)"
         }}
       >
         <div className="flex items-center justify-between">
@@ -249,19 +249,19 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
           </div>
           {/* Progress bar */}
           <div
-            className="absolute top-0 bottom-0 left-0 transition-all duration-1000 bg-indigo-500/15"
+            className="absolute top-0 bottom-0 left-0 transition-all duration-1000 bg-amber-600/15"
             style={{ width: `${clamped52wPos}%`, zIndex: 1 }}
           />
           {/* Pin */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-indigo-400 shadow-lg transition-all duration-1000"
+            className="absolute top-0 bottom-0 w-0.5 bg-amber-500 shadow-lg transition-all duration-1000"
             style={{ left: `${clamped52wPos}%`, zIndex: 2 }}
           />
         </div>
       </div>
 
       {/* CMF Accumulation Mini Chart */}
-      <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)]">
+      <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)]">
         <div className="flex justify-between items-center">
           <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Chaikin Money Flow (CMF)</span>
           <span className={`text-xs font-mono font-bold ${currentCmf >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -279,7 +279,7 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
                 <div 
                   key={idx} 
                   title={`CMF: ${val.toFixed(2)}`}
-                  className="flex-1 flex flex-col items-center justify-end h-full bg-slate-950/30 rounded-sm relative group cursor-pointer"
+                  className="flex-1 flex flex-col items-center justify-end h-full bg-[#0b0b09]/30 rounded-sm relative group cursor-pointer"
                 >
                   <div 
                     style={{ height: `${Math.max(10, scale)}%` }}
@@ -298,7 +298,7 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
       </div>
 
       {/* CCI Panel */}
-      <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)]">
+      <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)]">
         <div className="flex justify-between items-center">
           <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Commodity Channel Index (CCI)</span>
           <span className={`text-xs font-mono font-bold ${cciColor}`}>
@@ -316,7 +316,7 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
         <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
           AI 15-Bar Forecast Range
         </div>
-        <div className="p-3 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] space-y-1.5">
+        <div className="p-3 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] space-y-1.5">
           <ValueRow
             label="Upper Estimation Bound"
             value={formatINR(targetUpper)}
@@ -327,7 +327,7 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
             label="Forecast Center Price"
             value={formatINR(targetBase)}
             subtext="Projected regression coordinate"
-            color="text-indigo-300"
+            color="text-amber-400"
           />
           <ValueRow
             label="Lower Estimation Bound"
@@ -344,17 +344,17 @@ export default function AdvancedPanel({ indicators, candles, fundamentals }) {
           <span className="uppercase tracking-wider font-semibold">Trend Channel Location</span>
           <span className="font-mono text-slate-300">{channelPositionPct.toFixed(0)}%</span>
         </div>
-        <div className="relative h-6 bg-slate-900/80 rounded-lg border border-[rgba(99,102,241,0.06)] overflow-hidden">
+        <div className="relative h-6 bg-slate-900/80 rounded-lg border border-[rgba(212,150,58,0.06)] overflow-hidden">
           <div className="absolute inset-0 flex justify-between px-2 items-center text-[8px] text-slate-500 select-none z-0">
             <span>OVERSOLD (-1.6σ)</span>
             <span>OVERBOUGHT (+1.6σ)</span>
           </div>
           <div
-            className="absolute top-0 bottom-0 left-0 transition-all duration-1000 bg-gradient-to-r from-emerald-500/20 via-indigo-500/20 to-rose-500/20"
+            className="absolute top-0 bottom-0 left-0 transition-all duration-1000 bg-gradient-to-r from-emerald-500/20 via-amber-600/20 to-rose-500/20"
             style={{ width: `${clampedChanPos}%`, zIndex: 1 }}
           />
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-indigo-400 shadow-glow-accent transition-all duration-1000"
+            className="absolute top-0 bottom-0 w-0.5 bg-amber-500 shadow-glow-accent transition-all duration-1000"
             style={{ left: `${clampedChanPos}%`, zIndex: 2 }}
           />
         </div>

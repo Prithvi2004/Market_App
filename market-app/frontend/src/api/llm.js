@@ -34,26 +34,30 @@ const getUrl = (url) => {
   return `${API_BASE_URL.replace(/\/$/, "")}${url}`;
 };
 
-export async function streamExplain({ symbol, timeframe = "1D", include_news = true }, handlers) {
+export async function streamExplain({ symbol, timeframe = "1D", include_news = true }, handlers, signal) {
   const resp = await fetch(getUrl("/api/explain"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ symbol, timeframe, include_news }),
+    signal,
   });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   for await (const ev of readEvents(resp)) {
+    if (signal?.aborted) break;
     handlers[ev.event]?.(ev.data);
   }
 }
 
-export async function streamImpact({ headline, summary = "" }, handlers) {
+export async function streamImpact({ headline, summary = "" }, handlers, signal) {
   const resp = await fetch(getUrl("/api/impact"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ headline, summary }),
+    signal,
   });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   for await (const ev of readEvents(resp)) {
+    if (signal?.aborted) break;
     handlers[ev.event]?.(ev.data);
   }
 }

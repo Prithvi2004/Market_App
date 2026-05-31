@@ -38,7 +38,7 @@ function CustomTooltip({ active, payload }) {
   const isToday = data.type === "Today";
 
   return (
-    <div className="bg-[#0b1220]/95 border border-[rgba(99,102,241,0.25)] rounded-xl p-3.5 shadow-2xl backdrop-blur-md">
+    <div className="bg-[#0b1220]/95 border border-[rgba(212,150,58,0.25)] rounded-xl p-3.5 shadow-2xl backdrop-blur-md">
       <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
         {data.type} · {data.time}
       </div>
@@ -53,8 +53,8 @@ function CustomTooltip({ active, payload }) {
         
         {isToday && (
           <div className="flex justify-between gap-6 items-center text-xs">
-            <span className="text-indigo-400 font-semibold">Today's Close:</span>
-            <span className="font-extrabold text-indigo-300">{formatINR(data.Historical)}</span>
+            <span className="text-amber-500 font-semibold">Today's Close:</span>
+            <span className="font-extrabold text-amber-400">{formatINR(data.Historical)}</span>
           </div>
         )}
         
@@ -168,7 +168,13 @@ export default function PredictPanel({ indicators, candles }) {
     for (let j = 1; j <= 20; j++) {
       const futureTimeIndex = n - 1 + j;
       const nextDate = new Date(todayCandle.t);
-      nextDate.setDate(nextDate.getDate() + j);
+      // Advance j trading days, skipping weekends
+      let tradingDaysAdded = 0;
+      while (tradingDaysAdded < j) {
+        nextDate.setDate(nextDate.getDate() + 1);
+        const dow = nextDate.getDay();
+        if (dow !== 0 && dow !== 6) tradingDaysAdded++;
+      }
 
       // Model predictions
       const predLR = lrSlope * futureTimeIndex + lrIntercept;
@@ -258,12 +264,12 @@ export default function PredictPanel({ indicators, candles }) {
     <div className="space-y-5">
       
       {/* Header */}
-      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(99,102,241,0.1)]">
+      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(212,150,58,0.1)]">
         AI Multi-Model Ensemble Forecast &amp; Volatility Cone
       </div>
 
       {/* Forecast Chart */}
-      <div className="h-[280px] w-full bg-slate-950/40 rounded-xl border border-[rgba(99,102,241,0.08)] p-3 relative">
+      <div className="h-[280px] w-full bg-[#0b0b09]/40 rounded-xl border border-[rgba(212,150,58,0.08)] p-3 relative">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
             <defs>
@@ -277,7 +283,7 @@ export default function PredictPanel({ indicators, candles }) {
               </linearGradient>
             </defs>
             
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(99, 102, 241, 0.03)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(212,150,58, 0.03)" vertical={false} />
             
             <XAxis 
               dataKey="time" 
@@ -382,7 +388,7 @@ export default function PredictPanel({ indicators, candles }) {
             return (
               <div 
                 key={key} 
-                className="bg-slate-900/40 border border-[rgba(255,255,255,0.04)] rounded-xl p-3.5 flex flex-col justify-between hover:border-[rgba(99,102,241,0.25)] transition-all"
+                className="bg-[#111110]/60 border border-[rgba(255,255,255,0.04)] rounded-xl p-3.5 flex flex-col justify-between hover:border-[rgba(212,150,58,0.25)] transition-all"
               >
                 <div className="flex justify-between items-center border-b border-[rgba(255,255,255,0.06)] pb-1.5 mb-2">
                   <span className="text-[11px] font-black text-slate-200 uppercase tracking-wider">{stepName}</span>
@@ -396,7 +402,7 @@ export default function PredictPanel({ indicators, candles }) {
                   <span className="text-sm font-black font-mono text-fuchsia-400">{formatINR(annotation.Neutral)}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[9px] bg-slate-950/60 p-2 rounded-lg border border-[rgba(255,255,255,0.02)]">
+                <div className="grid grid-cols-2 gap-2 text-[9px] bg-[#0b0b09]/70 p-2 rounded-lg border border-[rgba(255,255,255,0.02)]">
                   <div className="text-left">
                     <span className="block text-slate-500 text-[8px] uppercase tracking-wider">Bear Limit</span>
                     <span className="font-mono text-rose-400 font-bold">{formatINR(annotation.Bearish)}</span>
@@ -420,7 +426,7 @@ export default function PredictPanel({ indicators, candles }) {
           <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
             Accuracy &amp; Validation Summary
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between gap-4">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between gap-4">
             <div className={`p-3 rounded-lg border text-center ${changeBg}`}>
               <div className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Final D+20 Projection</div>
               <div className={`text-base font-black font-mono mt-1 ${changeColor}`}>
@@ -454,9 +460,9 @@ export default function PredictPanel({ indicators, candles }) {
           <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
             Predictive Model Narrative
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-center">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-center">
             <div className="rounded-lg bg-black/35 p-3.5 border border-[rgba(255,255,255,0.015)]">
-              <div className="text-[9px] text-slate-400 uppercase tracking-wider font-bold mb-1.5 font-mono text-indigo-400">
+              <div className="text-[9px] text-slate-400 uppercase tracking-wider font-bold mb-1.5 font-mono text-amber-500">
                 // ENSEMBLE SYNTHESIS NARRATIVE
               </div>
               <p className="text-[10.5px] text-slate-300 leading-relaxed font-sans">
@@ -479,31 +485,31 @@ export default function PredictPanel({ indicators, candles }) {
           <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
             Mathematical Citations
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] space-y-2 overflow-y-auto max-h-[220px] pr-1">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] space-y-2 overflow-y-auto max-h-[220px] pr-1">
             
-            <div className="p-2.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 space-y-0.5">
-              <div className="text-[9px] text-indigo-400 font-extrabold tracking-wide">[1] Holt DES (40% Weight)</div>
+            <div className="p-2.5 rounded-lg bg-amber-600/5 border border-amber-600/10 space-y-0.5">
+              <div className="text-[9px] text-amber-500 font-extrabold tracking-wide">[1] Holt DES (40% Weight)</div>
               <p className="text-[10px] text-slate-400 leading-relaxed">
                 Calculates local level and trend parameters using alpha=0.35, beta=0.15 to model momentum drift.
               </p>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 space-y-0.5">
-              <div className="text-[9px] text-indigo-400 font-extrabold tracking-wide">[2] Linear Regression (20% Weight)</div>
+            <div className="p-2.5 rounded-lg bg-amber-600/5 border border-amber-600/10 space-y-0.5">
+              <div className="text-[9px] text-amber-500 font-extrabold tracking-wide">[2] Linear Regression (20% Weight)</div>
               <p className="text-[10px] text-slate-400 leading-relaxed">
                 Calculates ordinary least squares linear trend line to establish the baseline long-term vector.
               </p>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 space-y-0.5">
-              <div className="text-[9px] text-indigo-400 font-extrabold tracking-wide">[3] ATR Volatility Cone</div>
+            <div className="p-2.5 rounded-lg bg-amber-600/5 border border-amber-600/10 space-y-0.5">
+              <div className="text-[9px] text-amber-500 font-extrabold tracking-wide">[3] ATR Volatility Cone</div>
               <p className="text-[10px] text-slate-400 leading-relaxed">
                 Projects uncertainty bounds using 1.50 × ATR_14 × &radic;t, mapping the scaling of stochastic price dispersion over time.
               </p>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 space-y-0.5">
-              <div className="text-[9px] text-indigo-400 font-extrabold tracking-wide">[4] RSI Mean-Reversion Bias (20% Weight)</div>
+            <div className="p-2.5 rounded-lg bg-amber-600/5 border border-amber-600/10 space-y-0.5">
+              <div className="text-[9px] text-amber-500 font-extrabold tracking-wide">[4] RSI Mean-Reversion Bias (20% Weight)</div>
               <p className="text-[10px] text-slate-400 leading-relaxed">
                 Applies correction multipliers if RSI exceeds overbought (70) or falls below oversold (30) limits.
               </p>

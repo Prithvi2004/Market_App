@@ -754,7 +754,7 @@ function MiniStockExampleChart({ example, direction }) {
       </div>
 
       {/* SVG Chart — full width, scrollable if needed */}
-      <div className="overflow-x-auto px-3 pt-3 pb-1 bg-slate-950/40">
+      <div className="overflow-x-auto px-3 pt-3 pb-1 bg-[#0b0b09]/40">
         <svg width={Math.max(totalW, 200)} height="85" className="overflow-visible block mx-auto">
           {/* Grid lines */}
           {[21, 42, 63].map((y) => (
@@ -774,7 +774,7 @@ function MiniStockExampleChart({ example, direction }) {
               <g key={i}>
                 {isHl && (
                   <rect x={x - 10} y="1" width="20" height="83"
-                    fill="rgba(99,102,241,0.08)" stroke="rgba(99,102,241,0.3)"
+                    fill="rgba(212,150,58,0.08)" stroke="rgba(212,150,58,0.3)"
                     strokeWidth="1" strokeDasharray="3,2" rx="4" />
                 )}
                 <line x1={x} y1={highY} x2={x} y2={lowY} stroke={color} strokeWidth="1.5" />
@@ -837,64 +837,121 @@ export default function PatternGuide() {
 
   return (
     <div className="space-y-4">
-      {/* ── Header Card ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-[rgba(99,102,241,0.15)] bg-slate-900/40 p-5 md:p-6 backdrop-blur-md">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none select-none">
-          <span className="text-8xl">📖</span>
+
+      {/* ── Hero Header ───────────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-[rgba(212,150,58,0.2)]"
+        style={{
+          background: "linear-gradient(135deg, #0b0b09 0%, #0f1018 40%, #0d0c0a 100%)",
+          boxShadow: "0 0 60px rgba(212,150,58,0.06) inset, 0 4px 32px rgba(0,0,0,0.5)",
+        }}
+      >
+        {/* Decorative amber glow */}
+        <div
+          className="absolute top-0 right-0 w-64 h-64 opacity-[0.04] pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, #d4963a 0%, transparent 70%)",
+            transform: "translate(30%, -30%)",
+          }}
+        />
+        {/* Decorative pattern: candlestick silhouette */}
+        <div className="absolute top-0 right-0 p-5 opacity-[0.04] pointer-events-none select-none">
+          <svg width="120" height="100" viewBox="0 0 120 100" fill="none">
+            <line x1="20" y1="10" x2="20" y2="85" stroke="#d4963a" strokeWidth="2" />
+            <rect x="12" y="30" width="16" height="30" rx="2" fill="#d4963a" />
+            <line x1="50" y1="5" x2="50" y2="90" stroke="#d4963a" strokeWidth="2" />
+            <rect x="42" y="15" width="16" height="48" rx="2" fill="#d4963a" />
+            <line x1="80" y1="20" x2="80" y2="80" stroke="#10b981" strokeWidth="2" />
+            <rect x="72" y="35" width="16" height="28" rx="2" fill="#10b981" />
+            <line x1="110" y1="8" x2="110" y2="70" stroke="#10b981" strokeWidth="2" />
+            <rect x="102" y="20" width="16" height="35" rx="2" fill="#10b981" />
+          </svg>
         </div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-            Reference Guide
-          </span>
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-            24 Classic Formations
-          </span>
+
+        <div className="relative px-5 pt-5 pb-4">
+          {/* Tags row */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span
+              className="text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full border"
+              style={{ background: "rgba(212,150,58,0.1)", color: "#d4963a", borderColor: "rgba(212,150,58,0.25)" }}
+            >
+              Reference Guide
+            </span>
+            <span
+              className="text-[9px] font-bold uppercase tracking-[0.12em] px-2 py-1 rounded-full border"
+              style={{ background: "rgba(255,255,255,0.03)", color: "#64748b", borderColor: "rgba(255,255,255,0.06)" }}
+            >
+              NSE · Bank Nifty · Nifty 50
+            </span>
+          </div>
+
+          {/* Main title */}
+          <h1
+            className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight leading-tight mb-2"
+            style={{ fontFamily: "'DM Serif Display', serif" }}
+          >
+            🇮🇳 Candlestick
+            <span
+              className="ml-2"
+              style={{ background: "linear-gradient(90deg, #d4963a, #f0c56a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+            >
+              Playbook
+            </span>
+          </h1>
+          <p className="text-[11px] text-muted leading-relaxed max-w-2xl mb-4">
+            24 battle-tested candlestick formations — with volume rules, entry triggers, FII/DII confluences,
+            and real NSE stock examples. Built specifically for Indian markets.
+          </p>
+
+          {/* Quick stats strip */}
+          <div className="flex flex-wrap gap-3 pt-3 border-t border-[rgba(212,150,58,0.08)]">
+            {[
+              { label: "Patterns",  value: "24",  icon: "🕯️" },
+              { label: "Bullish",   value: "8",   icon: "📈" },
+              { label: "Bearish",   value: "8",   icon: "📉" },
+              { label: "Neutral",   value: "8",   icon: "⟷"  },
+              { label: "Reliability",value: "60–80%", icon: "✅" },
+            ].map(({ label, value, icon }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <span className="text-xs">{icon}</span>
+                <div>
+                  <div
+                    className="text-[11px] font-black text-slate-100"
+                    style={{ fontFamily: "'DM Mono', monospace" }}
+                  >
+                    {value}
+                  </div>
+                  <div className="text-[8px] text-muted uppercase tracking-wider">{label}</div>
+                </div>
+                <div className="w-px h-4 bg-[rgba(212,150,58,0.08)] ml-1" />
+              </div>
+            ))}
+          </div>
         </div>
-        <h1 className="text-xl md:text-2xl font-black text-slate-100 tracking-tight">
-          🇮🇳 Indian Stock Market Candlestick Guide
-        </h1>
-        <p className="text-xs text-slate-400 mt-2 leading-relaxed max-w-3xl">
-          Master 24 major bullish, bearish, and neutral candlestick formations. Tailored specifically with live volume rules, strict entry triggers, real-life stock examples, and FII/DII action confluences for index trading on the NSE (Nifty and Bank Nifty).
-        </p>
       </div>
 
-      {/* ── Tabs selector ── */}
-      <div className="flex rounded-xl bg-slate-900/60 p-1 border border-[rgba(99,102,241,0.08)]">
-        <button
-          onClick={() => handleTabChange("bullish")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-300 ${
-            guideTab === "bullish"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-md"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border border-transparent"
-          }`}
-        >
-          📈 Bullish Reversal
-        </button>
-        <button
-          onClick={() => handleTabChange("bearish")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-300 ${
-            guideTab === "bearish"
-              ? "bg-rose-500/10 border border-rose-500/20 text-rose-400 shadow-md"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border border-transparent"
-          }`}
-        >
-          📉 Bearish Reversal
-        </button>
-        <button
-          onClick={() => handleTabChange("neutral")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-300 ${
-            guideTab === "neutral"
-              ? "bg-amber-500/10 border border-amber-500/20 text-amber-400 shadow-md"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border border-transparent"
-          }`}
-        >
-          ⟷ Neutral / Continuation
-        </button>
+      {/* ── Pattern type tabs ──────────────────────────────────── */}
+      <div className="flex rounded-xl p-1 border gap-1" style={{ background: "rgba(11,11,9,0.8)", borderColor: "rgba(212,150,58,0.12)" }}>
+        {[
+          { id: "bullish", label: "📈 Bullish",  active: "bg-emerald-500/10 border-emerald-500/25 text-emerald-400", inactive: "text-muted hover:text-slate-200" },
+          { id: "bearish", label: "📉 Bearish",  active: "bg-rose-500/10 border-rose-500/25 text-rose-400",         inactive: "text-muted hover:text-slate-200" },
+          { id: "neutral", label: "⟷ Neutral",   active: "bg-amber-500/10 border-amber-500/25 text-amber-400",     inactive: "text-muted hover:text-slate-200" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => handleTabChange(t.id)}
+            className={`flex-1 py-2.5 text-[11px] font-bold rounded-lg transition-all duration-300 border ${
+              guideTab === t.id ? t.active : `border-transparent ${t.inactive} hover:bg-white/[0.03]`
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* ── Collapsed Details Panel Restore Banner ── */}
       {detailsCollapsed && selectedPattern && (
-        <div className="flex items-center justify-between bg-indigo-500/5 border border-indigo-500/15 rounded-xl px-4 py-3 animate-fade-in">
+        <div className="flex items-center justify-between bg-amber-600/5 border border-amber-600/15 rounded-xl px-4 py-3 animate-fade-in">
           <div className="flex items-center gap-2">
             <span className="text-base">💡</span>
             <div className="text-[11px] text-slate-300 font-medium">
@@ -903,7 +960,7 @@ export default function PatternGuide() {
           </div>
           <button
             onClick={() => setDetailsCollapsed(false)}
-            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20 transition-all active:scale-95"
+            className="text-[10px] font-bold text-amber-500 hover:text-amber-400 bg-amber-600/10 px-3 py-1 rounded-lg border border-amber-600/20 transition-all active:scale-95"
           >
             Expand Details ⟪
           </button>
@@ -923,8 +980,8 @@ export default function PatternGuide() {
                 onClick={() => handleSelectPattern(idx)}
                 className={`cursor-pointer group flex flex-col justify-between rounded-xl p-3.5 border transition-all duration-300 relative overflow-hidden ${
                   isSelected
-                    ? "bg-indigo-500/5 border-indigo-500/40 shadow-[0_4px_20px_rgba(99,102,241,0.06)]"
-                    : "bg-slate-900/30 border-[rgba(99,102,241,0.08)] hover:bg-slate-900/50 hover:border-indigo-500/20"
+                    ? "bg-amber-600/5 border-amber-600/40 shadow-[0_4px_20px_rgba(212,150,58,0.06)]"
+                    : "bg-[#111110]/50 border-[rgba(212,150,58,0.08)] hover:bg-slate-900/50 hover:border-amber-600/20"
                 }`}
               >
                 {/* SVG diagram and header */}
@@ -935,7 +992,7 @@ export default function PatternGuide() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="text-xs font-bold text-slate-100 group-hover:text-indigo-400 transition-colors">
+                      <h3 className="text-xs font-bold text-slate-100 group-hover:text-amber-500 transition-colors">
                         {p.name}
                       </h3>
                       <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold uppercase border ${badgeColor}`}>
@@ -961,14 +1018,14 @@ export default function PatternGuide() {
         {/* ── Selected Pattern Detail Panel ── */}
         {!detailsCollapsed && selectedPattern && (
           <div className="xl:col-span-2 animate-fade-in">
-            <div className="rounded-2xl border border-[rgba(99,102,241,0.2)] bg-[#0a0d1a] overflow-hidden sticky top-[4.5rem]">
+            <div className="rounded-2xl border border-[rgba(212,150,58,0.2)] bg-[#0a0d1a] overflow-hidden sticky top-[4.5rem]">
 
               {/* ── Panel Header ── */}
-              <div className="px-5 pt-5 pb-4 border-b border-[rgba(255,255,255,0.06)] bg-gradient-to-r from-indigo-950/30 to-transparent">
+              <div className="px-5 pt-5 pb-4 border-b border-[rgba(255,255,255,0.06)]" style={{ background: "linear-gradient(135deg, rgba(212,150,58,0.06) 0%, transparent 100%)" }}>
                 <div className="flex items-start gap-4">
                   {/* Large blueprint SVG */}
                   <div
-                    className="shrink-0 flex items-center justify-center rounded-2xl bg-black/50 border border-[rgba(99,102,241,0.12)] p-3"
+                    className="shrink-0 flex items-center justify-center rounded-2xl bg-black/50 border border-[rgba(212,150,58,0.12)] p-3"
                     style={{ width: 72, height: 72 }}
                     dangerouslySetInnerHTML={{ __html: SVGS[selectedPattern.svgKey] ?? "" }}
                   />
@@ -984,7 +1041,7 @@ export default function PatternGuide() {
                     <div className="text-[10px] text-slate-500 mb-2">Technical Specifications &amp; Trade Setup</div>
                     <button
                       onClick={() => setDetailsCollapsed(true)}
-                      className="text-[9px] font-semibold text-slate-600 hover:text-indigo-400 transition-colors uppercase tracking-widest"
+                      className="text-[9px] font-semibold text-slate-600 hover:text-amber-500 transition-colors uppercase tracking-widest"
                     >
                       ✕ Collapse panel
                     </button>
@@ -997,7 +1054,7 @@ export default function PatternGuide() {
 
                 {/* Section 1 — Anatomy */}
                 <div className="px-5 py-4">
-                  <div className="text-[9px] text-indigo-400 uppercase tracking-[0.15em] font-extrabold mb-2">
+                  <div className="text-[9px] text-amber-500 uppercase tracking-[0.15em] font-extrabold mb-2">
                     📖 Pattern Anatomy
                   </div>
                   <p className="text-[12px] text-slate-300 leading-relaxed">
@@ -1007,10 +1064,10 @@ export default function PatternGuide() {
 
                 {/* Section 2 — Blueprint */}
                 <div className="px-5 py-4">
-                  <div className="text-[9px] text-indigo-400 uppercase tracking-[0.15em] font-extrabold mb-3">
+                  <div className="text-[9px] text-amber-500 uppercase tracking-[0.15em] font-extrabold mb-3">
                     📐 Theoretical Blueprint
                   </div>
-                  <div className="flex flex-col items-center justify-center rounded-xl border border-[rgba(99,102,241,0.1)] bg-black/50 py-5">
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-[rgba(212,150,58,0.1)] bg-black/50 py-5">
                     <div
                       className="scale-125"
                       dangerouslySetInnerHTML={{ __html: SVGS[selectedPattern.svgKey] ?? "" }}
@@ -1022,7 +1079,7 @@ export default function PatternGuide() {
                 {/* Section 3 — Live Example */}
                 {selectedPattern.example && (
                   <div className="px-5 py-4">
-                    <div className="text-[9px] text-indigo-400 uppercase tracking-[0.15em] font-extrabold mb-3">
+                    <div className="text-[9px] text-amber-500 uppercase tracking-[0.15em] font-extrabold mb-3">
                       📊 Real Stock Example
                     </div>
                     <MiniStockExampleChart example={selectedPattern.example} direction={guideTab} />
@@ -1031,7 +1088,7 @@ export default function PatternGuide() {
 
                 {/* Section 4 — Metrics 2×2 */}
                 <div className="px-5 py-4">
-                  <div className="text-[9px] text-indigo-400 uppercase tracking-[0.15em] font-extrabold mb-3">
+                  <div className="text-[9px] text-amber-500 uppercase tracking-[0.15em] font-extrabold mb-3">
                     📊 Key Metrics
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -1043,7 +1100,7 @@ export default function PatternGuide() {
                     ].map(({ label, value, accent, mono }) => (
                       <div key={label} className="bg-slate-900/60 rounded-xl border border-[rgba(255,255,255,0.04)] p-3">
                         <div className="text-[8px] text-slate-500 uppercase tracking-wider font-bold mb-1.5">{label}</div>
-                        <div className={`text-[11.5px] font-extrabold leading-snug ${accent ? "text-indigo-300" : "text-slate-200"} ${mono ? "font-mono" : ""}`}>
+                        <div className={`text-[11.5px] font-extrabold leading-snug ${accent ? "text-amber-400" : "text-slate-200"} ${mono ? "font-mono" : ""}`}>
                           {value}
                         </div>
                       </div>
@@ -1053,7 +1110,7 @@ export default function PatternGuide() {
 
                 {/* Section 5 — Volume + Confirmation */}
                 <div className="px-5 py-4 space-y-3">
-                  <div className="text-[9px] text-indigo-400 uppercase tracking-[0.15em] font-extrabold mb-1">
+                  <div className="text-[9px] text-amber-500 uppercase tracking-[0.15em] font-extrabold mb-1">
                     🔊 Trade Rules
                   </div>
                   <div className="rounded-xl border border-[rgba(255,255,255,0.04)] bg-slate-900/50 overflow-hidden">
@@ -1070,10 +1127,10 @@ export default function PatternGuide() {
 
                 {/* Section 6 — NSE / India context */}
                 <div className="px-5 py-4">
-                  <div className="text-[9px] text-indigo-400 uppercase tracking-[0.15em] font-extrabold mb-3">
+                  <div className="text-[9px] text-amber-500 uppercase tracking-[0.15em] font-extrabold mb-3">
                     🇮🇳 Indian Market / NSE Context
                   </div>
-                  <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/[0.04] p-4">
+                  <div className="rounded-xl border border-amber-600/20 bg-amber-600/[0.04] p-4">
                     <p className="text-[12px] text-slate-300 leading-relaxed">{selectedPattern.nse}</p>
                   </div>
                 </div>

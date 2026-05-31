@@ -89,7 +89,7 @@ function formatImpactText(text, loading) {
 
           // Style direction badge
           const dirLower = direction.toLowerCase();
-          let badgeClass = "bg-slate-800 text-slate-400 border-slate-700";
+          let badgeClass = "bg-slate-800 text-slate-400 border-[rgba(212,150,58,0.12)]";
           if (dirLower.includes("positive")) {
             badgeClass =
               "bg-bull/10 text-bull border-bull/20 shadow-[0_0_8px_rgba(16,185,129,0.1)]";
@@ -104,7 +104,7 @@ function formatImpactText(text, loading) {
           return (
             <div
               key={idx}
-              className="glass-card bg-slate-900/40 p-4 border-[rgba(99,102,241,0.06)] hover:border-accent/20 hover:scale-[1.01] transition-all duration-200"
+              className="glass-card bg-[#111110]/60 p-4 border-[rgba(212,150,58,0.06)] hover:border-accent/20 hover:scale-[1.01] transition-all duration-200"
             >
               <div className="flex items-center justify-between border-b border-white/[0.03] pb-2 mb-2.5">
                 <span className="font-semibold text-slate-200 text-xs tracking-wide flex items-center gap-1.5">
@@ -259,7 +259,7 @@ export default function ImpactAnalyzer() {
       />
       <div className="relative glass-card w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col animate-slide-up shadow-glow-accent">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(99,102,241,0.1)]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(212,150,58,0.1)]">
           <div>
             <h2 className="text-base font-bold gradient-text">
               ⚡ Impact Analyzer
@@ -278,7 +278,7 @@ export default function ImpactAnalyzer() {
         </div>
 
         {/* Input area */}
-        <div className="px-6 py-4 space-y-3 border-b border-[rgba(99,102,241,0.1)]">
+        <div className="px-6 py-4 space-y-3 border-b border-[rgba(212,150,58,0.1)]">
           <div>
             <label className="text-xs text-muted uppercase tracking-wide mb-1.5 block">
               Headline *
@@ -288,7 +288,7 @@ export default function ImpactAnalyzer() {
               onChange={(e) => setHeadline(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && onAnalyze()}
               placeholder="e.g. RBI raises repo rate by 25 bps…"
-              className="w-full bg-surface/50 border border-[rgba(99,102,241,0.2)] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-muted outline-none focus:border-accent/50 transition-colors"
+              className="w-full bg-surface/50 border border-[rgba(212,150,58,0.2)] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-muted outline-none focus:border-accent/50 transition-colors"
             />
           </div>
           <div>
@@ -300,7 +300,7 @@ export default function ImpactAnalyzer() {
               onChange={(e) => setSummary(e.target.value)}
               rows={2}
               placeholder="Additional context…"
-              className="w-full bg-surface/50 border border-[rgba(99,102,241,0.2)] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-muted outline-none focus:border-accent/50 transition-colors resize-none"
+              className="w-full bg-surface/50 border border-[rgba(212,150,58,0.2)] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-muted outline-none focus:border-accent/50 transition-colors resize-none"
             />
           </div>
 
@@ -366,7 +366,7 @@ export default function ImpactAnalyzer() {
         </div>
 
         {/* Footer disclaimer */}
-        <div className="px-6 py-2 border-t border-[rgba(99,102,241,0.08)]">
+        <div className="px-6 py-2 border-t border-[rgba(212,150,58,0.08)]">
           <p className="text-[10px] text-muted italic text-center">
             AI-generated analysis · Not financial advice · Powered by Ollama
           </p>

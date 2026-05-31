@@ -24,7 +24,7 @@ const INDICATOR_COLORS = {
   ema9: "#f59e0b",
   ema20: "#3b82f6",
   ema50: "#a855f7",
-  bb: "rgba(99,102,241,0.6)",
+  bb: "rgba(212,150,58,0.6)",
   vwap: "#06b6d4",
   trendline: "#10b981",
   projection: "rgba(124,58,237,0.55)", // violet-600
@@ -350,28 +350,28 @@ export default function TradingChart({
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "rgba(99,102,241,0.03)", style: LineStyle.Solid },
-        horzLines: { color: "rgba(99,102,241,0.03)", style: LineStyle.Solid },
+        vertLines: { color: "rgba(212,150,58,0.03)", style: LineStyle.Solid },
+        horzLines: { color: "rgba(212,150,58,0.03)", style: LineStyle.Solid },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          color: "rgba(99,102,241,0.35)",
+          color: "rgba(212,150,58,0.35)",
           width: 1,
           style: LineStyle.Dashed,
         },
         horzLine: {
-          color: "rgba(99,102,241,0.35)",
+          color: "rgba(212,150,58,0.35)",
           width: 1,
           style: LineStyle.Dashed,
         },
       },
       rightPriceScale: {
-        borderColor: "rgba(99,102,241,0.12)",
+        borderColor: "rgba(212,150,58,0.12)",
         scaleMargins: { top: 0.12, bottom: 0.28 },
       },
       timeScale: {
-        borderColor: "rgba(99,102,241,0.12)",
+        borderColor: "rgba(212,150,58,0.12)",
         timeVisible: true,
         secondsVisible: false,
         fixLeftEdge: true,
@@ -490,18 +490,18 @@ export default function TradingChart({
       });
     } else if (chartType === "Area") {
       series = chart.addSeries(AreaSeries, {
-        lineColor: "#6366f1",
-        topColor: "rgba(99,102,241,0.3)",
-        bottomColor: "rgba(99,102,241,0.02)",
+        lineColor: "#d4963a",
+        topColor: "rgba(212,150,58,0.3)",
+        bottomColor: "rgba(212,150,58,0.02)",
         lineWidth: 2,
-        crosshairMarkerBackgroundColor: "#6366f1",
+        crosshairMarkerBackgroundColor: "#d4963a",
       });
     } else {
       // Line
       series = chart.addSeries(LineSeries, {
-        color: "#6366f1",
+        color: "#d4963a",
         lineWidth: 2,
-        crosshairMarkerBackgroundColor: "#6366f1",
+        crosshairMarkerBackgroundColor: "#d4963a",
       });
     }
 
@@ -709,7 +709,7 @@ export default function TradingChart({
             userSelect: "none",
             touchAction: "none",
           }}
-          className="bg-slate-950/90 backdrop-blur-md border border-[rgba(99,102,241,0.3)] rounded-xl shadow-2xl pointer-events-auto text-left animate-fade-in"
+          className="bg-[#0b0b09]/90 backdrop-blur-md border border-[rgba(212,150,58,0.3)] rounded-xl shadow-2xl pointer-events-auto text-left animate-fade-in"
         >
           {/* Drag handle header */}
           <div
@@ -727,19 +727,19 @@ export default function TradingChart({
                 <circle cx="2" cy="13" r="1.5" fill="#94a3b8"/>
                 <circle cx="8" cy="13" r="1.5" fill="#94a3b8"/>
               </svg>
-              <span className="text-[10px] text-indigo-400 font-extrabold uppercase tracking-wider">
+              <span className="text-[10px] text-amber-500 font-extrabold uppercase tracking-wider">
                 🔍 Pattern Matcher
               </span>
             </div>
-            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-[8.5px] text-emerald-400 font-bold border border-emerald-500/20 shrink-0">
-              100% Accuracy
+            <span className="px-1.5 py-0.5 rounded bg-slate-700/60 text-[8.5px] text-slate-400 font-bold border border-[rgba(212,150,58,0.18)]/30 shrink-0">
+              {patternOverlayData.successRate ?? "—"} Historical
             </span>
           </div>
 
           {/* Card body */}
           <div className="p-3.5 space-y-2.5">
             <div className="flex items-center gap-2.5">
-              <span className="text-2xl shrink-0 p-1.5 rounded-lg bg-slate-900/60 border border-[rgba(99,102,241,0.08)] leading-none">{patternOverlayData.emoji}</span>
+              <span className="text-2xl shrink-0 p-1.5 rounded-lg bg-slate-900/60 border border-[rgba(212,150,58,0.08)] leading-none">{patternOverlayData.emoji}</span>
               <div>
                 <div className="text-[12.5px] font-extrabold text-slate-100 leading-snug">
                   {patternOverlayData.name}
@@ -769,7 +769,7 @@ export default function TradingChart({
               </div>
             </div>
 
-            <div className="text-[8px] text-indigo-300/70 italic text-right pt-2 border-t border-[rgba(255,255,255,0.05)]">
+            <div className="text-[8px] text-amber-400/70 italic text-right pt-2 border-t border-[rgba(255,255,255,0.05)]">
               Drag to move · Projected 10 bars ahead
             </div>
           </div>

@@ -9,7 +9,7 @@ export default function TickerTape({ data = [] }) {
   const items = [...data, ...data];
 
   return (
-    <div className="overflow-hidden bg-surface border-b border-[rgba(99,102,241,0.1)] py-2 select-none">
+    <div className="overflow-hidden bg-surface border-b border-[rgba(212,150,58,0.1)] py-2 select-none">
       <div className="ticker-tape-track gap-6">
         {items.map((q, i) => {
           const sym = q.symbol?.replace(".NS", "").replace(".BO", "");

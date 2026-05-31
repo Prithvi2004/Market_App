@@ -57,7 +57,7 @@ function ArcGauge({ score }) {
       <path
         d={describeArc(startAngle, startAngle + totalArc)}
         fill="none"
-        stroke="rgba(99,102,241,0.08)"
+        stroke="rgba(212,150,58,0.08)"
         strokeWidth="11"
         strokeLinecap="round"
       />
@@ -149,7 +149,7 @@ function MetricBar({ label, value, description, max = 100 }) {
           {Math.round(value)}
         </span>
       </div>
-      <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-900">
+      <div className="h-2 bg-[#0b0b09] rounded-full overflow-hidden border border-slate-900">
         <div
           className={`h-full rounded-full transition-all duration-1000 ${color}`}
           style={{ width: `${pct}%` }}
@@ -171,9 +171,11 @@ export default function MomentumGauge({ score = 50, indicators, candles }) {
     const ema50 = indicators.ema50?.[n] ?? close;
     const atr = indicators.atr?.[n] ?? 0;
     
-    // Sub-scores
+    // Normalize MACD histogram as % of price so the score is scale-invariant
     const rsiScore = Math.max(0, Math.min(100, rsi));
-    const macdScore = Math.max(0, Math.min(100, 50 + hist * 6));
+    const macdScore = close > 0
+      ? Math.max(0, Math.min(100, 50 + (hist / close) * 10000))
+      : Math.max(0, Math.min(100, 50 + hist * 6));
     const stochK = indicators.stoch?.k?.[n] ?? 50;
     
     const emaScore = close > ema20 && ema20 > ema50 ? 85 : close < ema20 && ema20 < ema50 ? 15 : 50;
@@ -238,7 +240,7 @@ export default function MomentumGauge({ score = 50, indicators, candles }) {
 
   return (
     <div className="space-y-4">
-      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(99,102,241,0.1)]">
+      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(212,150,58,0.1)]">
         Composite Momentum &amp; Trend Intensity
       </div>
 
@@ -249,7 +251,7 @@ export default function MomentumGauge({ score = 50, indicators, candles }) {
           <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
             Composite Momentum Index
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between items-center text-center">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between items-center text-center">
             <div className="py-2 w-full">
               <ArcGauge score={score} />
             </div>
@@ -269,7 +271,7 @@ export default function MomentumGauge({ score = 50, indicators, candles }) {
           <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
             Core Momentum Oscillators
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between gap-3">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between gap-3">
             <div className="space-y-2.5">
               <MetricBar
                 label="RSI (Relative Strength)"
@@ -298,7 +300,7 @@ export default function MomentumGauge({ score = 50, indicators, candles }) {
           <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
             Trend Intensity &amp; Volatility
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between gap-4">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between gap-4">
             
             {/* Metric 1: EMA alignment */}
             <div className="p-3 rounded-lg bg-black/20 border border-[rgba(255,255,255,0.02)] space-y-1">
@@ -322,11 +324,11 @@ export default function MomentumGauge({ score = 50, indicators, candles }) {
               <div className="text-[9px] text-muted uppercase tracking-wider font-bold">Average True Range (ATR) volatility</div>
               <div className="flex justify-between items-baseline mt-0.5">
                 <span className="text-xs font-bold text-slate-100 font-mono">{formatINR(atr)}</span>
-                <span className="text-[10px] text-indigo-400 font-extrabold font-mono">{atrPct.toFixed(2)}% of Price</span>
+                <span className="text-[10px] text-amber-500 font-extrabold font-mono">{atrPct.toFixed(2)}% of Price</span>
               </div>
-              <div className="h-1 bg-slate-950 rounded-full overflow-hidden mt-1.5">
+              <div className="h-1 bg-[#0b0b09] rounded-full overflow-hidden mt-1.5">
                 <div
-                  className="h-full rounded-full bg-indigo-500"
+                  className="h-full rounded-full bg-amber-600"
                   style={{ width: `${Math.min(100, atrPct * 20)}%` }}
                 />
               </div>

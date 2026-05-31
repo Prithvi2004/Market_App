@@ -11,7 +11,7 @@ function PivotRow({ label, price, currentPrice, type }) {
   
   let color = "text-slate-300";
   let bg = "bg-slate-800/20";
-  let border = "border-slate-700/20";
+  let border = "border-[rgba(212,150,58,0.12)]/20";
   
   if (isR) {
     color = "text-rose-400";
@@ -22,9 +22,9 @@ function PivotRow({ label, price, currentPrice, type }) {
     bg = "bg-emerald-500/5";
     border = "border-emerald-500/15";
   } else {
-    color = "text-indigo-400";
-    bg = "bg-indigo-500/10";
-    border = "border-indigo-500/25";
+    color = "text-amber-500";
+    bg = "bg-amber-600/10";
+    border = "border-amber-600/25";
   }
 
   const dist = currentPrice ? ((price - currentPrice) / currentPrice) * 100 : 0;
@@ -33,7 +33,7 @@ function PivotRow({ label, price, currentPrice, type }) {
   return (
     <div
       className={`flex items-center justify-between py-2 px-3 rounded-lg border ${bg} ${border} ${
-        isCurrent ? "ring-1 ring-accent-light/40 shadow-lg bg-indigo-500/10" : ""
+        isCurrent ? "ring-1 ring-accent-light/40 shadow-lg bg-amber-600/10" : ""
       } transition-all duration-300`}
     >
       <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ function LevelRow({ level, type, price }) {
     <div
       className={`flex items-center justify-between py-2.5 px-3 rounded-lg border ${bg} ${border} ${
         isCurrent ? "ring-1 ring-accent/30 shadow-md" : ""
-      } hover:bg-slate-900/40 transition duration-150`}
+      } hover:bg-[#111110]/60 transition duration-150`}
     >
       <div className="flex items-center gap-2">
         <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-black/30 ${color}`}>
@@ -141,7 +141,7 @@ export default function SupportResistance({ indicators, candles }) {
 
   return (
     <div className="space-y-4">
-      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(99,102,241,0.1)]">
+      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(212,150,58,0.1)]">
         Structural Levels & Pivot Matrix
       </div>
 
@@ -152,7 +152,7 @@ export default function SupportResistance({ indicators, candles }) {
           <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
             Classic Daily Pivot Points
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between gap-2.5">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between gap-2.5">
             {pivots ? (
               <div className="space-y-2">
                 <PivotRow label="R3" price={pivots.r3} currentPrice={price} type="resistance" />
@@ -177,7 +177,7 @@ export default function SupportResistance({ indicators, candles }) {
           <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
             Structural High/Low Key Levels
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between gap-4">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between gap-4">
             <div className="space-y-2 overflow-y-auto max-h-[300px] pr-1">
               {levels.length > 0 ? (
                 levels.map((l, i) => (
@@ -206,7 +206,7 @@ export default function SupportResistance({ indicators, candles }) {
           <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
             Fibonacci Retracement Grid
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(99,102,241,0.08)] flex flex-col justify-between">
+          <div className="flex-1 p-4 rounded-xl bg-slate-900/60 border border-[rgba(212,150,58,0.08)] flex flex-col justify-between">
             {fib ? (
               <div className="space-y-2">
                 {fib.levels.map((l) => {
@@ -215,7 +215,7 @@ export default function SupportResistance({ indicators, candles }) {
                   return (
                     <div
                       key={l.ratio}
-                      className="flex justify-between items-center py-2 border-b border-[rgba(99,102,241,0.06)] last:border-0"
+                      className="flex justify-between items-center py-2 border-b border-[rgba(212,150,58,0.06)] last:border-0"
                     >
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 font-mono tracking-wider">

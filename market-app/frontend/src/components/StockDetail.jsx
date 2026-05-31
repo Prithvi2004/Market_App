@@ -78,7 +78,7 @@ function ChartTooltip({ active, payload, label, range }) {
         </span>
       </div>
       {d.v != null && (
-        <div className="pt-1 border-t border-[rgba(99,102,241,0.1)] flex justify-between">
+        <div className="pt-1 border-t border-[rgba(212,150,58,0.1)] flex justify-between">
           <span className="text-muted">Volume</span>
           <span className="text-slate-400 tabular-nums">
             {Number(d.v).toLocaleString("en-IN")}
@@ -127,7 +127,7 @@ function Range52W({ price, high, low }) {
 // ─── Stat Box ──────────────────────────────────────────────────────────────────
 function StatBox({ label, value, colorCls }) {
   return (
-    <div className="bg-surface/60 rounded-lg p-2.5 border border-[rgba(99,102,241,0.08)]">
+    <div className="bg-surface/60 rounded-lg p-2.5 border border-[rgba(212,150,58,0.08)]">
       <div className="text-[10px] text-muted mb-1">{label}</div>
       <div
         className={`text-sm font-semibold tabular-nums ${colorCls || "text-slate-200"}`}
@@ -180,10 +180,26 @@ export default function StockDetail() {
         onClick={() => setSelectedSymbol(null)}
       />
 
-      {/* Panel */}
-      <div className="fixed right-0 top-0 bottom-0 z-30 w-full max-w-3xl bg-ink border-l border-[rgba(99,102,241,0.15)] overflow-y-auto shadow-2xl animate-slide-in-right">
+      {/* Panel:
+          Mobile  → bottom sheet sliding up, 93dvh tall
+          Desktop → right-side drawer, full height
+      */}
+      <div className="
+        fixed z-30 overflow-y-auto shadow-2xl bg-ink border-[rgba(212,150,58,0.15)]
+        /* Mobile: bottom sheet */
+        bottom-0 left-0 right-0 rounded-t-2xl border-t
+        h-[93dvh]
+        /* Desktop: side drawer */
+        md:rounded-none md:border-l md:border-t-0
+        md:right-0 md:top-0 md:bottom-0 md:left-auto
+        md:w-full md:max-w-3xl md:h-auto
+        animate-slide-up md:animate-slide-in-right
+      ">
+        {/* Drag handle (mobile only) */}
+        <div className="sheet-handle" />
+
         {/* ── Sticky header ────────────────────── */}
-        <div className="sticky top-0 z-10 glass-card rounded-none border-t-0 border-r-0 border-l-0 px-5 py-4">
+        <div className="sticky top-0 z-10 glass-card rounded-none border-t-0 border-r-0 border-l-0 px-4 sm:px-5 py-3 sm:py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -230,9 +246,9 @@ export default function StockDetail() {
         </div>
 
         {/* ── Content ──────────────────────────── */}
-        <div className="p-5 space-y-4">
+        <div className="p-3 sm:p-5 space-y-4 pb-[calc(var(--bottom-nav-h)+1rem)] md:pb-5">
           {/* Quote card */}
-          <div className="glass-card p-5">
+          <div className="glass-card p-4 sm:p-5">
             {isLoading ? (
               <div className="space-y-3">
                 <div className="shimmer-bg h-9 w-40 rounded" />
@@ -246,12 +262,12 @@ export default function StockDetail() {
             ) : q ? (
               <>
                 {/* Price + change */}
-                <div className="flex items-baseline gap-3 mb-5">
-                  <span className="text-4xl font-bold text-slate-100 tabular-nums">
+                <div className="flex flex-wrap items-baseline gap-2 mb-4">
+                  <span className="text-3xl sm:text-4xl font-bold text-slate-100 tabular-num">
                     {formatINR(q.price)}
                   </span>
                   <span
-                    className={`text-lg font-semibold tabular-nums ${colorClass(q.change_pct)}`}
+                    className={`text-base sm:text-lg font-semibold tabular-num ${colorClass(q.change_pct)}`}
                   >
                     {formatSigned(q.change)} ({formatPct(q.change_pct)})
                   </span>
@@ -295,14 +311,15 @@ export default function StockDetail() {
               <h3 className="text-sm font-semibold text-slate-200">
                 Price Chart
               </h3>
-              <div className="flex gap-1 p-0.5 bg-slate-800/60 rounded-lg border border-slate-700/50">
+              {/* Chart range pills — scrollable row on mobile */}
+              <div className="flex gap-1 p-0.5 bg-slate-800/60 rounded-lg border border-[rgba(212,150,58,0.12)]/50 overflow-x-auto scrollbar-none">
                 {RANGES.map((r) => (
                   <button
                     key={r}
                     onClick={() => setRange(r)}
-                    className={`text-xs px-2.5 py-1 rounded-md transition-all duration-200 font-medium ${
+                    className={`shrink-0 text-xs px-2 sm:px-2.5 py-1 rounded-md transition-all duration-200 font-medium ${
                       range === r
-                        ? "bg-accent/20 text-accent-light border border-accent/30"
+                        ? "bg-accent/20 text-[#f0c56a] border border-accent/30"
                         : "text-muted hover:text-slate-300"
                     }`}
                   >
@@ -340,7 +357,7 @@ export default function StockDetail() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      stroke="rgba(99,102,241,0.09)"
+                      stroke="rgba(212,150,58,0.09)"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
@@ -375,24 +392,34 @@ export default function StockDetail() {
                       tickLine={false}
                       width={56}
                       tickFormatter={yFmt}
+                      yAxisId="price"
+                    />
+                    {/* Hidden secondary axis for volume bars */}
+                    <YAxis
+                      yAxisId="vol"
+                      orientation="right"
+                      domain={[0, (max) => max * 8]}
+                      hide
                     />
                     <Tooltip
                       content={<ChartTooltip range={range} />}
                       cursor={{
-                        stroke: "rgba(99,102,241,0.3)",
+                        stroke: "rgba(212,150,58,0.3)",
                         strokeWidth: 1,
                         strokeDasharray: "4 2",
                       }}
                     />
-                    {/* Volume bars (hidden but data present for tooltip) */}
+                    {/* Volume bars on secondary axis — visible but subtle */}
                     <Bar
+                      yAxisId="vol"
                       dataKey="v"
-                      fill="rgba(99,102,241,0.12)"
+                      fill="rgba(212,150,58,0.18)"
                       radius={1}
-                      maxBarSize={4}
+                      maxBarSize={6}
                     />
                     {/* Glowing Area Fill */}
                     <Area
+                      yAxisId="price"
                       type="monotone"
                       dataKey="c"
                       stroke="none"
@@ -401,6 +428,7 @@ export default function StockDetail() {
                     />
                     {/* Price line */}
                     <Line
+                      yAxisId="price"
                       type="monotone"
                       dataKey="c"
                       stroke={chartColor}
@@ -411,8 +439,9 @@ export default function StockDetail() {
                     {/* Opening price reference */}
                     {chart[0]?.o && (
                       <ReferenceLine
+                        yAxisId="price"
                         y={chart[0].o}
-                        stroke="rgba(99,102,241,0.3)"
+                        stroke="rgba(212,150,58,0.3)"
                         strokeDasharray="4 2"
                         strokeWidth={1}
                       />

@@ -68,12 +68,12 @@ const RIGHT_TABS = [
 
 /* ─── colour tokens ─────────────────────────────────────────────── */
 const C = {
-  bg: "#080e1a",
-  surface: "#0f1729",
-  border: "rgba(99,102,241,0.13)",
-  faint: "rgba(99,102,241,0.07)",
-  accent: "#6366f1",
-  alight: "#a5b4fc",
+  bg: "#0b0b09",
+  surface: "#111110",
+  border: "rgba(212,150,58,0.13)",
+  faint: "rgba(212,150,58,0.07)",
+  accent: "#d4963a",
+  alight: "#f0c56a",
   muted: "#64748b",
   text: "#e2e8f0",
   sub: "#94a3b8",
@@ -85,7 +85,7 @@ const C = {
 function Pill({
   children,
   color = C.alight,
-  bg = "rgba(99,102,241,0.13)",
+  bg = "rgba(212,150,58,0.13)",
   border = C.border,
 }) {
   return (
@@ -212,8 +212,8 @@ function ChartSkeleton() {
             height: 32,
             borderRadius: "50%",
             margin: "0 auto 8px",
-            border: "2px solid rgba(99,102,241,0.3)",
-            borderTopColor: "#6366f1",
+            border: "2px solid rgba(212,150,58,0.3)",
+            borderTopColor: "#d4963a",
             animation: "spin 1s linear infinite",
           }}
         />
@@ -259,9 +259,9 @@ function TabBtn({ active, onClick, children }) {
         alignItems: "center",
         justifyContent: "center",
         gap: 4,
-        background: active ? "rgba(99,102,241,0.2)" : "transparent",
+        background: active ? "rgba(212,150,58,0.2)" : "transparent",
         color: active ? C.alight : C.muted,
-        borderColor: active ? "rgba(99,102,241,0.3)" : "transparent",
+        borderColor: active ? "rgba(212,150,58,0.3)" : "transparent",
       }}
     >
       {children}
@@ -273,9 +273,9 @@ function SegBtn({
   active,
   onClick,
   children,
-  activeColor = "rgba(99,102,241,0.2)",
-  activeTextColor = "#a5b4fc",
-  activeBorder = "rgba(99,102,241,0.3)",
+  activeColor = "rgba(212,150,58,0.2)",
+  activeTextColor = "#f0c56a",
+  activeBorder = "rgba(212,150,58,0.3)",
 }) {
   return (
     <button
@@ -309,10 +309,10 @@ function OverlayBtn({ active, onClick, label }) {
         fontSize: 11,
         fontWeight: 600,
         transition: "all 0.15s",
-        background: active ? "rgba(99,102,241,0.15)" : "transparent",
+        background: active ? "rgba(212,150,58,0.15)" : "transparent",
         color: active ? C.alight : C.muted,
         border: active
-          ? "1px solid rgba(99,102,241,0.3)"
+          ? "1px solid rgba(212,150,58,0.3)"
           : "1px solid rgba(30,41,59,0.9)",
       }}
     >
@@ -349,7 +349,7 @@ class TerminalErrorBoundary extends Component {
           right: 0,
           bottom: 0,
           zIndex: 9999,
-          background: "#080e1a",
+          background: "#0b0b09",
           color: C.text,
           display: "flex",
           alignItems: "center",
@@ -369,7 +369,7 @@ class TerminalErrorBoundary extends Component {
               padding: "6px 12px",
               borderRadius: 8,
               border: `1px solid ${C.border}`,
-              background: "rgba(99,102,241,0.12)",
+              background: "rgba(212,150,58,0.12)",
               color: C.alight,
               fontSize: 12,
               cursor: "pointer",
@@ -391,7 +391,7 @@ function FundRow({ label, value, sub, color = "#e2e8f0", fullWidth = false }) {
   return (
     <div style={{
       display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-      padding: "7px 0", borderBottom: "1px solid rgba(99,102,241,0.06)",
+      padding: "7px 0", borderBottom: "1px solid rgba(212,150,58,0.06)",
       gridColumn: fullWidth ? "1/-1" : undefined,
     }}>
       <div>
@@ -408,7 +408,7 @@ function FundamentalsPanel({ fundamentals: f, loading, symbol, formatINR, format
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "16px 0" }}>
         {[...Array(8)].map((_, i) => (
-          <div key={i} style={{ height: 32, background: "rgba(99,102,241,0.05)", borderRadius: 6, animation: "pulse 1.5s ease-in-out infinite" }} />
+          <div key={i} style={{ height: 32, background: "rgba(212,150,58,0.05)", borderRadius: 6, animation: "pulse 1.5s ease-in-out infinite" }} />
         ))}
       </div>
     );
@@ -436,11 +436,11 @@ function FundamentalsPanel({ fundamentals: f, loading, symbol, formatINR, format
   return (
     <div style={{ fontSize: 12 }}>
       {/* Header card */}
-      <div style={{ background: "rgba(99,102,241,0.06)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, border: "1px solid rgba(99,102,241,0.12)" }}>
+      <div style={{ background: "rgba(212,150,58,0.06)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, border: "1px solid rgba(212,150,58,0.12)" }}>
         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>{f.sector} · {f.industry}</div>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{f.name}</div>
         <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-          {f.market_cap && <div style={{ fontSize: 10, color: "#94a3b8" }}>Market Cap: <span style={{ color: "#a5b4fc", fontWeight: 600 }}>{fmtCr(f.market_cap)}</span></div>}
+          {f.market_cap && <div style={{ fontSize: 10, color: "#94a3b8" }}>Market Cap: <span style={{ color: "#f0c56a", fontWeight: 600 }}>{fmtCr(f.market_cap)}</span></div>}
           {f.analyst_recommendation && (
             <div style={{ fontSize: 10, color: "#94a3b8" }}>Analyst: <span style={{ color: recColor, fontWeight: 700, textTransform: "capitalize" }}>{f.analyst_recommendation?.replace("_", " ")}</span></div>
           )}
@@ -455,8 +455,8 @@ function FundamentalsPanel({ fundamentals: f, loading, symbol, formatINR, format
             <span style={{ color: bullish52w ? "#10b981" : "#f59e0b", fontWeight: 700 }}>{pos.toFixed(0)}% of range</span>
             <span>52W High: {formatINR(f["52w_high"])}</span>
           </div>
-          <div style={{ height: 8, background: "rgba(15,23,42,0.8)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(99,102,241,0.1)" }}>
-            <div style={{ width: `${Math.max(2, Math.min(100, pos))}%`, height: "100%", background: `linear-gradient(90deg, #6366f1, ${bullish52w ? "#10b981" : "#f59e0b"})`, borderRadius: 4, transition: "width 0.8s ease" }} />
+          <div style={{ height: 8, background: "rgba(15,23,42,0.8)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(212,150,58,0.1)" }}>
+            <div style={{ width: `${Math.max(2, Math.min(100, pos))}%`, height: "100%", background: `linear-gradient(90deg, #d4963a, ${bullish52w ? "#10b981" : "#f59e0b"})`, borderRadius: 4, transition: "width 0.8s ease" }} />
           </div>
         </div>
       )}
@@ -481,7 +481,7 @@ function FundamentalsPanel({ fundamentals: f, loading, symbol, formatINR, format
       {(f.dividend_yield || f.dividend_rate) && (
         <>
           <div style={{ marginTop: 8, marginBottom: 4, fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Dividends</div>
-          <FundRow label="Dividend Yield" value={f.dividend_yield != null ? `${f.dividend_yield}%` : null} color="#a5b4fc" />
+          <FundRow label="Dividend Yield" value={f.dividend_yield != null ? `${f.dividend_yield}%` : null} color="#f0c56a" />
           <FundRow label="Dividend Rate (Annual)" value={f.dividend_rate != null ? formatINR(f.dividend_rate) : null} />
         </>
       )}
@@ -489,7 +489,7 @@ function FundamentalsPanel({ fundamentals: f, loading, symbol, formatINR, format
       {/* Risk */}
       <div style={{ marginTop: 8, marginBottom: 4, fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Risk & Ownership</div>
       <FundRow label="Beta vs Market" value={fmtNum(f.beta, 2)} sub="1.0 = market risk" color={f.beta > 1.5 ? "#f43f5e" : f.beta < 0.8 ? "#10b981" : "#e2e8f0"} />
-      <FundRow label="Institutional Holdings" value={f.held_by_institutions != null ? `${f.held_by_institutions}%` : null} color="#a5b4fc" />
+      <FundRow label="Institutional Holdings" value={f.held_by_institutions != null ? `${f.held_by_institutions}%` : null} color="#f0c56a" />
 
       {/* Analyst targets */}
       {f.target_price && (
@@ -498,10 +498,10 @@ function FundamentalsPanel({ fundamentals: f, loading, symbol, formatINR, format
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginTop: 4 }}>
             {[
               { label: "Low", val: f.target_low, col: "#f43f5e" },
-              { label: "Mean", val: f.target_price, col: "#a5b4fc" },
+              { label: "Mean", val: f.target_price, col: "#f0c56a" },
               { label: "High", val: f.target_high, col: "#10b981" },
             ].map(({ label, val, col }) => val && (
-              <div key={label} style={{ background: "rgba(15,23,42,0.6)", border: "1px solid rgba(99,102,241,0.1)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
+              <div key={label} style={{ background: "rgba(15,23,42,0.6)", border: "1px solid rgba(212,150,58,0.1)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
                 <div style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: "monospace", marginTop: 2 }}>{formatINR(val)}</div>
               </div>
@@ -521,7 +521,7 @@ function PeersPanel({ peers, loading, currentSymbol, formatINR, colorClass, form
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "16px 0" }}>
         {[...Array(5)].map((_, i) => (
-          <div key={i} style={{ height: 40, background: "rgba(99,102,241,0.05)", borderRadius: 6 }} />
+          <div key={i} style={{ height: 40, background: "rgba(212,150,58,0.05)", borderRadius: 6 }} />
         ))}
       </div>
     );
@@ -550,11 +550,11 @@ function PeersPanel({ peers, loading, currentSymbol, formatINR, colorClass, form
           const isPos = chg >= 0;
           return (
             <div key={p.symbol} style={{
-              background: "rgba(15,23,42,0.6)", border: "1px solid rgba(99,102,241,0.08)",
+              background: "rgba(15,23,42,0.6)", border: "1px solid rgba(212,150,58,0.08)",
               borderRadius: 8, padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "space-between",
               transition: "background 0.15s",
             }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(99,102,241,0.06)"}
+              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(212,150,58,0.06)"}
               onMouseLeave={(e) => e.currentTarget.style.background = "rgba(15,23,42,0.6)"}
             >
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -575,7 +575,7 @@ function PeersPanel({ peers, loading, currentSymbol, formatINR, colorClass, form
               </div>
               <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 16, minWidth: 60 }}>
                 <div style={{ fontSize: 9, color: "#64748b" }}>Mkt Cap</div>
-                <div style={{ fontSize: 10, color: "#a5b4fc", fontWeight: 600 }}>{fmtCap(p.market_cap)}</div>
+                <div style={{ fontSize: 10, color: "#f0c56a", fontWeight: 600 }}>{fmtCap(p.market_cap)}</div>
               </div>
             </div>
           );
@@ -622,8 +622,14 @@ export default function AnalysisTerminal({
   }, []);
 
   const chartHeight = useMemo(() => {
-    // Header (approx 64px) + StatsBar (approx 38px) + OverlaysBar (approx 34px) + padding/margins = approx 176px
-    return Math.max(380, viewportHeight - 176);
+    const isMobile = viewportHeight < 640;
+    // Mobile: header ~80px + stats 2-rows ~72px + overlays ~32px + footer ~24px = ~208px overhead
+    // Desktop: header ~64px + stats 2-rows ~60px + overlays ~30px + footer ~24px = ~178px overhead
+    const overhead = isMobile ? 210 : 180;
+    const computed = viewportHeight - overhead;
+    // Mobile: cap at 45vh so there's room to scroll to the tab panels below
+    const cap = isMobile ? viewportHeight * 0.45 : Infinity;
+    return Math.max(240, Math.min(computed, cap));
   }, [viewportHeight]);
 
   const {
@@ -673,47 +679,10 @@ export default function AnalysisTerminal({
       timestamp: new Date().toISOString(),
     };
     setDebugInfo(info);
-    // eslint-disable-next-line no-console
-    console.info("[AnalysisTerminal] mount", info);
-    return () => {
-      // eslint-disable-next-line no-console
-      console.info("[AnalysisTerminal] unmount", { symbol });
-    };
+    return () => {};
   }, [symbolOverride, analysisSymbol, fallbackSymbol, symbol, analysisStandalone]);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.info("[AnalysisTerminal] data", {
-      symbol,
-      quote: !!q,
-      chartPoints: rawChart?.length ?? 0,
-      newsItems: news?.length ?? 0,
-      chartRange: range,
-      chartType,
-      rightTab,
-    });
-  }, [symbol, q, rawChart, news, range, chartType, rightTab]);
 
-  useEffect(() => {
-    if (quoteError) {
-      // eslint-disable-next-line no-console
-      console.warn("[AnalysisTerminal] quote error", quoteErr);
-    }
-  }, [quoteError, quoteErr]);
-
-  useEffect(() => {
-    if (chartError) {
-      // eslint-disable-next-line no-console
-      console.warn("[AnalysisTerminal] chart error", chartErr);
-    }
-  }, [chartError, chartErr]);
-
-  useEffect(() => {
-    if (newsError) {
-      // eslint-disable-next-line no-console
-      console.warn("[AnalysisTerminal] news error", newsErr);
-    }
-  }, [newsError, newsErr]);
 
   const candles = useMemo(() => {
     if (!rawChart?.length) return [];
@@ -738,18 +707,14 @@ export default function AnalysisTerminal({
     );
 
   const closeTerminal = () => {
-    // eslint-disable-next-line no-console
-    console.info("[AnalysisTerminal] closeTerminal called", { analysisStandalone });
-    
     if (analysisStandalone) {
       setAnalysisOpen(false);
       setAnalysisSymbol(null);
       // For new tab mode, just close the window without redirect
       try {
         window.close();
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn("[AnalysisTerminal] window.close() failed (expected for non-popup windows)", e.message);
+      } catch (_e) {
+        // window.close() may fail for non-popup windows — expected behavior
       }
       return;
     }
@@ -826,7 +791,7 @@ export default function AnalysisTerminal({
               right: 0,
               bottom: 0,
               zIndex: 1,
-              background: "#080e1a",
+              background: "#0b0b09",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -848,7 +813,7 @@ export default function AnalysisTerminal({
                   maxWidth: 400,
                   textAlign: "center",
                   fontFamily: "monospace",
-                  background: "rgba(99,102,241,0.08)",
+                  background: "rgba(212,150,58,0.08)",
                   padding: 12,
                   borderRadius: 6,
                   border: `1px solid ${C.border}`,
@@ -874,7 +839,7 @@ export default function AnalysisTerminal({
                 padding: "6px 12px",
                 borderRadius: 8,
                 border: `1px solid ${C.border}`,
-                background: "rgba(99,102,241,0.12)",
+                background: "rgba(212,150,58,0.12)",
                 color: C.alight,
                 fontSize: 12,
                 cursor: "pointer",
@@ -937,7 +902,7 @@ export default function AnalysisTerminal({
               right: 0,
               bottom: 0,
               zIndex: 1,
-              background: "#080e1a",
+              background: "#0b0b09",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -950,243 +915,95 @@ export default function AnalysisTerminal({
             <div
               style={{
                 display: "flex",
-                alignItems: "center",
+                alignItems: "flex-start",
                 justifyContent: "space-between",
-                gap: 16,
-                padding: "12px 20px",
+                gap: 8,
+                padding: "10px 14px",
                 flexShrink: 0,
                 background: "rgba(8,14,26,0.95)",
                 borderBottom: `1px solid ${C.border}`,
+                flexWrap: "wrap",
               }}
             >
-              {/* Left cluster */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 16,
-                  minWidth: 0,
-                  flex: 1,
-                }}
-              >
-                {/* Name + tags */}
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <span
-                      style={{ fontSize: 16, fontWeight: 800, color: C.text }}
-                    >
-                      {q?.name || symbol}
-                    </span>
-                    <Pill>{q?.exchange || "NSE"}</Pill>
-                    <Pill
-                      color="#c4b5fd"
-                      bg="rgba(139,92,246,0.12)"
-                      border="rgba(139,92,246,0.25)"
-                    >
-                      ⚡ Terminal
-                    </Pill>
-                    {q?.stale && (
-                      <Pill
-                        color="#fbbf24"
-                        bg="rgba(251,191,36,0.1)"
-                        border="rgba(251,191,36,0.2)"
-                      >
-                        stale
-                      </Pill>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: C.muted,
-                      fontFamily: "monospace",
-                      marginTop: 2,
-                    }}
-                  >
-                    {symbol}
-                  </div>
+              {/* Left cluster — full width on mobile, row on desktop */}
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                {/* Name + exchange pill */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", minWidth: 0, flex: 1 }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "calc(100vw - 120px)" }}>
+                    {q?.name || symbol}
+                  </span>
+                  <Pill>{q?.exchange || "NSE"}</Pill>
+                  <Pill color="#c4b5fd" bg="rgba(139,92,246,0.12)" border="rgba(139,92,246,0.25)">⚡ Terminal</Pill>
+                  {q?.stale && <Pill color="#fbbf24" bg="rgba(251,191,36,0.1)" border="rgba(251,191,36,0.2)">stale</Pill>}
                 </div>
 
-                {/* Price */}
+                {/* Price row — moves below name on mobile */}
                 {q && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "baseline",
-                      gap: 8,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 22,
-                        fontWeight: 800,
-                        color: C.text,
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap", width: "100%" }}>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: C.text, fontVariantNumeric: "tabular-nums", fontFamily: "'DM Mono', monospace" }}>
                       {formatINR(q.price)}
                     </span>
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        fontVariantNumeric: "tabular-nums",
-                        color: (q.change_pct ?? 0) >= 0 ? C.bull : C.bear,
-                      }}
-                    >
+                    <span style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: (q.change_pct ?? 0) >= 0 ? C.bull : C.bear }}>
                       {formatSigned(q.change)} ({formatPct(q.change_pct)})
                     </span>
+                    {bullish > 0 && <Pill color={C.bull} bg="rgba(16,185,129,0.1)" border="rgba(16,185,129,0.22)">↑ {bullish}B</Pill>}
+                    {bearish > 0 && <Pill color={C.bear} bg="rgba(244,63,94,0.1)" border="rgba(244,63,94,0.22)">↓ {bearish}B</Pill>}
+                    <span style={{ fontSize: 9, color: C.muted, fontFamily: "monospace" }}>{symbol}</span>
                   </div>
-                )}
-
-                {/* Pattern pills */}
-                {bullish > 0 && (
-                  <Pill
-                    color={C.bull}
-                    bg="rgba(16,185,129,0.1)"
-                    border="rgba(16,185,129,0.22)"
-                  >
-                    ↑ {bullish} bullish
-                  </Pill>
-                )}
-                {bearish > 0 && (
-                  <Pill
-                    color={C.bear}
-                    bg="rgba(244,63,94,0.1)"
-                    border="rgba(244,63,94,0.22)"
-                  >
-                    ↓ {bearish} bearish
-                  </Pill>
                 )}
               </div>
 
-              {/* Close button */}
+              {/* Close button — always top-right */}
               <button
                 onClick={closeTerminal}
                 title="Close (Esc)"
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  flexShrink: 0,
-                  border: `1px solid ${C.faint}`,
-                  background: "transparent",
-                  color: C.muted,
-                  fontSize: 17,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.15s",
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                  border: `1px solid ${C.faint}`, background: "transparent",
+                  color: C.muted, fontSize: 17, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.15s", minWidth: 36,
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.07)";
-                  e.currentTarget.style.color = C.text;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = C.muted;
-                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = C.text; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = C.muted; }}
               >
                 ✕
               </button>
             </div>
 
             {/* ══ STATS + CONTROLS BAR ═════════════════════════════ */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                flexWrap: "wrap",
-                padding: "7px 20px",
-                flexShrink: 0,
-                background: "rgba(8,14,26,0.7)",
-                borderBottom: `1px solid ${C.faint}`,
-              }}
-            >
-              {q && (
-                <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                  <Row
-                    label="Vol"
-                    value={q.volume?.toLocaleString("en-IN") ?? "—"}
-                  />
-                  <Row label="MCap" value={formatIndianNumber(q.market_cap)} />
-                  <Row
-                    label="52W H"
-                    value={formatINR(q.high_52w)}
-                    color={C.bull}
-                  />
-                  <Row
-                    label="52W L"
-                    value={formatINR(q.low_52w)}
-                    color={C.bear}
-                  />
-                  <Row
-                    label="Patterns"
-                    value={patterns.length}
-                    color={C.alight}
-                  />
-                </div>
-              )}
+            {/* Row 1: quote stats + timeframes (scrollable on mobile) */}
+            <div style={{ flexShrink: 0, background: "rgba(8,14,26,0.7)", borderBottom: `1px solid ${C.faint}` }}>
+              {/* Stats strip — always scrollable on mobile */}
+              <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", padding: "5px 12px", scrollbarWidth: "none" }}>
+                {q && [
+                  { label: "Vol",      value: q.volume?.toLocaleString("en-IN") ?? "—",     color: C.sub },
+                  { label: "MCap",     value: formatIndianNumber(q.market_cap),              color: C.sub },
+                  { label: "52W H",    value: formatINR(q.high_52w),                         color: C.bull },
+                  { label: "52W L",    value: formatINR(q.low_52w),                          color: C.bear },
+                  { label: "Patterns", value: patterns.length,                               color: C.alight },
+                ].map(({ label, value, color }) => (
+                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 10px", borderRight: `1px solid ${C.faint}`, flexShrink: 0, whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: 9, color: C.muted }}>{label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{value}</span>
+                  </div>
+                ))}
+              </div>
 
-              {/* Timeframe + chart type (pushed right) */}
-              <div
-                style={{
-                  marginLeft: "auto",
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 2,
-                    padding: 3,
-                    borderRadius: 8,
-                    background: "#0b1220",
-                    border: "1px solid rgba(30,41,59,1)",
-                  }}
-                >
+              {/* Controls row: timeframes + chart types — scrollable */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", overflowX: "auto", scrollbarWidth: "none", borderTop: `1px solid ${C.faint}` }}>
+                {/* Timeframe pills */}
+                <div style={{ display: "flex", gap: 2, padding: 3, borderRadius: 8, background: "#0b1220", border: "1px solid rgba(30,41,59,1)", flexShrink: 0 }}>
                   {TIMEFRAMES.map((tf) => (
-                    <SegBtn
-                      key={tf}
-                      active={range === tf}
-                      onClick={() => setRange(tf)}
-                    >
-                      {tf}
-                    </SegBtn>
+                    <SegBtn key={tf} active={range === tf} onClick={() => setRange(tf)}>{tf}</SegBtn>
                   ))}
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 2,
-                    padding: 3,
-                    borderRadius: 8,
-                    background: "#0b1220",
-                    border: "1px solid rgba(30,41,59,1)",
-                  }}
-                >
+                <div style={{ width: 1, height: 18, background: C.faint, flexShrink: 0 }} />
+                {/* Chart types */}
+                <div style={{ display: "flex", gap: 2, padding: 3, borderRadius: 8, background: "#0b1220", border: "1px solid rgba(30,41,59,1)", flexShrink: 0 }}>
                   {CHART_TYPES.map((ct) => (
-                    <SegBtn
-                      key={ct.id}
-                      active={chartType === ct.id}
-                      onClick={() => setChartType(ct.id)}
-                      activeColor="rgba(139,92,246,0.2)"
-                      activeTextColor="#c4b5fd"
-                      activeBorder="rgba(139,92,246,0.3)"
-                    >
+                    <SegBtn key={ct.id} active={chartType === ct.id} onClick={() => setChartType(ct.id)}
+                      activeColor="rgba(139,92,246,0.2)" activeTextColor="#c4b5fd" activeBorder="rgba(139,92,246,0.3)">
                       {ct.icon} {ct.label}
                     </SegBtn>
                   ))}
@@ -1194,54 +1011,27 @@ export default function AnalysisTerminal({
               </div>
             </div>
 
-            {/* ══ INDICATOR TOGGLES ════════════════════════════════ */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-                padding: "6px 20px",
-                flexShrink: 0,
-                background: "rgba(8,14,26,0.5)",
-                borderBottom: `1px solid ${C.faint}`,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 10,
-                  color: C.muted,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  marginRight: 4,
-                  flexShrink: 0,
-                }}
-              >
-                Overlays
-              </span>
+            {/* ══ INDICATOR OVERLAY TOGGLES — horizontally scrollable ══ */}
+            <div style={{ flexShrink: 0, background: "rgba(8,14,26,0.5)", borderBottom: `1px solid ${C.faint}`, display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", overflowX: "auto", scrollbarWidth: "none" }}>
+              <span style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, whiteSpace: "nowrap" }}>Overlays</span>
               {INDICATORS.map((opt) => (
-                <OverlayBtn
-                  key={opt.id}
-                  active={activeIndicators.includes(opt.id)}
-                  onClick={() => toggleIndicator(opt.id)}
-                  label={opt.label}
-                />
+                <OverlayBtn key={opt.id} active={activeIndicators.includes(opt.id)} onClick={() => toggleIndicator(opt.id)} label={opt.label} />
               ))}
             </div>
 
-            {/* ══ BODY (vertical stacked scroll container) ═════════ */}
+            {/* ══ BODY ═════════════════════════════════════════════ */}
             <div
               style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "20px 24px 24px",
+                padding: "clamp(12px, 3vw, 24px) clamp(12px, 4vw, 24px) 24px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 24,
+                gap: "clamp(14px, 3vw, 24px)",
                 background: "rgba(8,14,26,0.2)",
               }}
             >
-              {/* ── Top: Chart Card (takes full container width, dynamic chartHeight for first viewport fold) ── */}
+              {/* ── Chart Card — height adapts to viewport ─────── */}
               <div
                 style={{
                   background: "#0c1420",
@@ -1249,7 +1039,8 @@ export default function AnalysisTerminal({
                   borderRadius: 12,
                   overflow: "hidden",
                   width: "100%",
-                  height: chartHeight,
+                  /* Mobile: 45vh minimum so chart is usable; desktop: computed chartHeight */
+                  height: Math.max(260, chartHeight),
                   flexShrink: 0,
                 }}
               >
@@ -1309,9 +1100,10 @@ export default function AnalysisTerminal({
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
-                        gap: 10,
-                        marginTop: 18,
+                        /* 2-col on mobile, 4-col when width allows */
+                        gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+                        gap: 8,
+                        marginTop: 14,
                       }}
                     >
                       <StatCard
@@ -1401,8 +1193,8 @@ export default function AnalysisTerminal({
                             transition: "all 0.15s",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(99,102,241,0.05)";
-                            e.currentTarget.style.borderColor = "rgba(99,102,241,0.15)";
+                            e.currentTarget.style.background = "rgba(212,150,58,0.05)";
+                            e.currentTarget.style.borderColor = "rgba(212,150,58,0.15)";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = "rgba(255, 255, 255, 0.01)";
@@ -1456,66 +1248,59 @@ export default function AnalysisTerminal({
                 )}
               </div>
 
-              {/* ── Bottom Section: 6 Analytical Tabs (Full Width) ── */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                  width: "100%",
-                  marginTop: 8,
-                  flexShrink: 0,
-                }}
-              >
-                {/* Horizontal Tab Bar with centered tabs, premium border and active shadow */}
-                <div
-                  style={{
+              {/* ══ ANALYSIS TABS ════════════════════════════════ */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", flexShrink: 0 }}>
+
+                {/* Tab bar — horizontally scrollable, no wrapping or crushing */}
+                <div style={{
+                  overflowX: "auto",
+                  scrollbarWidth: "none",
+                  WebkitOverflowScrolling: "touch",
+                  padding: "0 0 4px 0",  /* leave room for scrollbar on platforms that show it */
+                }}>
+                  <div style={{
                     display: "flex",
-                    justifyContent: "center",
-                    width: "100%",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 4,
-                      padding: 4,
-                      borderRadius: 12,
-                      background: "#0b1220",
-                      border: "1px solid rgba(99,102,241,0.15)",
-                      maxWidth: 800,
-                      width: "100%",
-                      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.25)",
-                    }}
-                  >
+                    gap: 4,
+                    padding: 4,
+                    borderRadius: 12,
+                    background: "#0b1220",
+                    border: "1px solid rgba(212,150,58,0.15)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                    /* Don't let tabs shrink — scrollable instead */
+                    width: "max-content",
+                    minWidth: "100%",
+                  }}>
                     {RIGHT_TABS.map((tab) => (
                       <button
                         key={tab.id}
                         onClick={() => setRightTab(tab.id)}
                         style={{
-                          flex: 1,
-                          padding: "10px 8px",
+                          /* Fixed minimum width per tab so label is always readable */
+                          minWidth: 72,
+                          padding: "8px 10px",
                           borderRadius: 8,
                           cursor: "pointer",
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 700,
                           border: "1px solid transparent",
-                          transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                          transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: 6,
-                          background: rightTab === tab.id ? "rgba(99,102,241,0.2)" : "transparent",
+                          gap: 5,
+                          background: rightTab === tab.id ? "rgba(212,150,58,0.2)" : "transparent",
                           color: rightTab === tab.id ? C.alight : C.muted,
-                          borderColor: rightTab === tab.id ? "rgba(99,102,241,0.3)" : "transparent",
+                          borderColor: rightTab === tab.id ? "rgba(212,150,58,0.3)" : "transparent",
                           textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                          boxShadow: rightTab === tab.id ? "0 2px 10px rgba(99, 102, 241, 0.15)" : "none",
+                          letterSpacing: "0.04em",
+                          boxShadow: rightTab === tab.id ? "0 2px 10px rgba(212,150,58,0.15)" : "none",
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                         }}
                         onMouseEnter={(e) => {
                           if (rightTab !== tab.id) {
                             e.currentTarget.style.color = C.text;
-                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
+                            e.currentTarget.style.background = "rgba(255,255,255,0.02)";
                           }
                         }}
                         onMouseLeave={(e) => {
@@ -1525,21 +1310,22 @@ export default function AnalysisTerminal({
                           }
                         }}
                       >
-                        <span style={{ fontSize: 13 }}>{tab.icon}</span>
+                        <span style={{ fontSize: 12 }}>{tab.icon}</span>
                         <span>{tab.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Tab content panel container - full width and premium styled */}
+                {/* Tab content panel — responsive padding */}
                 <div
                   style={{
                     background: "rgba(15,23,42,0.55)",
                     border: `1px solid ${C.border}`,
-                    borderRadius: 16,
-                    padding: "24px 28px",
-                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.3)",
+                    borderRadius: 14,
+                    /* clamp: 14px on tiny phones → 28px on desktop */
+                    padding: "clamp(14px, 4vw, 28px) clamp(14px, 4vw, 28px)",
+                    boxShadow: "0 12px 40px rgba(0,0,0,0.3)",
                     width: "100%",
                   }}
                 >
@@ -1613,27 +1399,24 @@ export default function AnalysisTerminal({
               </div>
             </div>
 
-            {/* ══ FOOTER ═══════════════════════════════════════════ */}
+            {/* ══ FOOTER ════════════════════════════════════════════ */}
             <div
               style={{
                 flexShrink: 0,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "6px 20px",
+                padding: "5px 12px",
                 borderTop: `1px solid ${C.faint}`,
                 background: "rgba(8,14,26,0.9)",
-                fontSize: 10,
+                fontSize: 9,
                 color: C.muted,
+                gap: 8,
+                flexWrap: "wrap",
               }}
             >
-              <span>
-                MarketPulse Terminal · {symbol} · Press Esc or click backdrop to
-                close
-              </span>
-              <span style={{ color: "rgba(244,63,94,0.55)", fontWeight: 600 }}>
-                Not financial advice
-              </span>
+              <span style={{ fontFamily: "'DM Mono', monospace" }}>{symbol} · Terminal</span>
+              <span style={{ color: "rgba(244,63,94,0.5)", fontWeight: 600 }}>Not financial advice</span>
             </div>
           </div>
           {/* end panel */}

@@ -72,6 +72,7 @@ export default function PortfolioTracker() {
   const [formOpen, setFormOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [formError, setFormError] = useState("");
 
   // Valuation states
   const [valResponse, setValResponse] = useState(null);
@@ -128,7 +129,7 @@ export default function PortfolioTracker() {
     // Check if symbol already exists to prevent duplicate symbols
     const exists = holdings.find((h) => h.symbol === stock.symbol);
     if (exists) {
-      alert(`${stock.name} is already in your portfolio. Delete it first to re-add.`);
+      setFormError(`${stock.name} is already in your portfolio. Delete it first to re-add.`);
       return;
     }
 
@@ -144,6 +145,7 @@ export default function PortfolioTracker() {
     setQty("");
     setBuyPrice("");
     setSearchQuery("");
+    setFormError("");
     setFormOpen(false);
   }
 
@@ -181,7 +183,7 @@ export default function PortfolioTracker() {
       />
       <div className="relative glass-card w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col animate-slide-up shadow-glow-accent">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(99,102,241,0.1)]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(212,150,58,0.1)]">
           <div className="flex items-center gap-2">
             <span className="text-xl">💼</span>
             <div>
@@ -191,7 +193,7 @@ export default function PortfolioTracker() {
               </p>
             </div>
             {loading && (
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_#6366f1]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_#d4963a]" />
             )}
           </div>
           <button
@@ -214,7 +216,7 @@ export default function PortfolioTracker() {
           {/* Metrics summary cards */}
           {hasHoldings && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="glass-card bg-slate-900/40 p-4 border-[rgba(99,102,241,0.06)]">
+              <div className="glass-card bg-[#111110]/60 p-4 border-[rgba(212,150,58,0.06)]">
                 <span className="text-[10px] font-medium text-slate-500 uppercase">
                   Invested Capital
                 </span>
@@ -223,7 +225,7 @@ export default function PortfolioTracker() {
                 </p>
               </div>
 
-              <div className="glass-card bg-slate-900/40 p-4 border-[rgba(99,102,241,0.06)]">
+              <div className="glass-card bg-[#111110]/60 p-4 border-[rgba(212,150,58,0.06)]">
                 <span className="text-[10px] font-medium text-slate-500 uppercase">
                   Current Value
                 </span>
@@ -240,7 +242,7 @@ export default function PortfolioTracker() {
                     ? "bg-bull/5 border-bull/20 shadow-[0_4px_20px_rgba(16,185,129,0.05)]"
                     : valResponse?.total_pnl < 0
                     ? "bg-bear/5 border-bear/20"
-                    : "bg-slate-900/40 border-[rgba(99,102,241,0.06)]"
+                    : "bg-[#111110]/60 border-[rgba(212,150,58,0.06)]"
                 }`}
               >
                 <span className="text-[10px] font-medium text-slate-500 uppercase">
@@ -279,7 +281,7 @@ export default function PortfolioTracker() {
           {formOpen ? (
             <form
               onSubmit={onAdd}
-              className="glass-card bg-slate-900/30 p-5 space-y-4 border-[rgba(99,102,241,0.15)] animate-fade-in"
+              className="glass-card bg-[#111110]/50 p-5 space-y-4 border-[rgba(212,150,58,0.15)] animate-fade-in"
             >
               <h3 className="text-sm font-semibold text-slate-200">
                 ➕ Add Holding
@@ -299,10 +301,10 @@ export default function PortfolioTracker() {
                       setDropdownOpen(true);
                     }}
                     onFocus={() => setDropdownOpen(true)}
-                    className="w-full bg-slate-950/80 border border-[rgba(99,102,241,0.2)] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-accent"
+                    className="w-full bg-[#0b0b09]/90 border border-[rgba(212,150,58,0.2)] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-accent"
                   />
                   {dropdownOpen && (
-                    <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-slate-950 border border-[rgba(99,102,241,0.25)] rounded-lg shadow-2xl z-50">
+                    <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#0b0b09] border border-[rgba(212,150,58,0.25)] rounded-lg shadow-2xl z-50">
                       {filteredOptions.length > 0 ? (
                         filteredOptions.map((o) => (
                           <button
@@ -345,7 +347,7 @@ export default function PortfolioTracker() {
                     value={qty}
                     required
                     onChange={(e) => setQty(e.target.value)}
-                    className="w-full bg-slate-950/80 border border-[rgba(99,102,241,0.2)] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-accent"
+                    className="w-full bg-[#0b0b09]/90 border border-[rgba(212,150,58,0.2)] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-accent"
                   />
                 </div>
 
@@ -360,7 +362,7 @@ export default function PortfolioTracker() {
                     value={buyPrice}
                     required
                     onChange={(e) => setBuyPrice(e.target.value)}
-                    className="w-full bg-slate-950/80 border border-[rgba(99,102,241,0.2)] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-accent"
+                    className="w-full bg-[#0b0b09]/90 border border-[rgba(212,150,58,0.2)] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-accent"
                   />
                 </div>
               </div>
@@ -368,7 +370,7 @@ export default function PortfolioTracker() {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setFormOpen(false)}
+                  onClick={() => { setFormOpen(false); setFormError(""); }}
                   className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   Cancel
@@ -376,11 +378,16 @@ export default function PortfolioTracker() {
                 <button
                   type="submit"
                   disabled={!selectedStock || !qty || !buyPrice}
-                  className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors shadow-glow-accent disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-semibold hover:bg-amber-600 transition-colors shadow-glow-accent disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Add Asset
                 </button>
               </div>
+              {formError && (
+                <p className="text-[10px] text-rose-400 text-right -mt-1">
+                  ⚠ {formError}
+                </p>
+              )}
             </form>
           ) : (
             <div className="flex justify-between items-center">
@@ -389,7 +396,7 @@ export default function PortfolioTracker() {
               </span>
               <button
                 onClick={() => setFormOpen(true)}
-                className="px-4 py-2 bg-white/[0.04] border border-[rgba(99,102,241,0.2)] hover:border-accent text-slate-200 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
+                className="px-4 py-2 bg-white/[0.04] border border-[rgba(212,150,58,0.2)] hover:border-accent text-slate-200 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
               >
                 <span>➕</span> Add Stock
               </button>
@@ -398,11 +405,11 @@ export default function PortfolioTracker() {
 
           {/* Holdings List */}
           {hasHoldings ? (
-            <div className="glass-card bg-slate-900/10 border-[rgba(99,102,241,0.06)] overflow-hidden">
+            <div className="glass-card bg-[#111110]/20 border-[rgba(212,150,58,0.06)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-[rgba(99,102,241,0.08)] bg-slate-950/50">
+                    <tr className="border-b border-[rgba(212,150,58,0.08)] bg-[#0b0b09]/50">
                       <th className="py-3 px-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
                         Ticker / Name
                       </th>
@@ -535,7 +542,7 @@ export default function PortfolioTracker() {
               </div>
             </div>
           ) : (
-            <div className="glass-card bg-slate-900/20 py-16 px-4 text-center border-dashed border-[rgba(99,102,241,0.15)]">
+            <div className="glass-card bg-[#111110]/30 py-16 px-4 text-center border-dashed border-[rgba(212,150,58,0.15)]">
               <span className="text-3xl block mb-3">💼</span>
               <h3 className="text-sm font-semibold text-slate-300">
                 Your portfolio is empty
@@ -555,7 +562,7 @@ export default function PortfolioTracker() {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-[rgba(99,102,241,0.08)] bg-slate-950/20 flex justify-between items-center text-[10px] text-muted">
+        <div className="px-6 py-3.5 border-t border-[rgba(212,150,58,0.08)] bg-[#0b0b09]/20 flex justify-between items-center text-[10px] text-muted">
           <span>* Data is polled live every 60s.</span>
           <span className="text-rose-600/60 font-semibold">
             Mock investment simulator only.

@@ -6,7 +6,7 @@ const sentimentClass = (label) =>
     ? "bg-bull/15 text-bull border-bull/20"
     : label === "negative"
     ? "bg-bear/15 text-bear border-bear/20"
-    : "bg-slate-800/60 text-slate-400 border-slate-700/50";
+    : "bg-slate-800/60 text-slate-400 border-[rgba(212,150,58,0.12)]/50";
 
 export default function ProvenancePanel() {
   const sources = useStore((s) => s.explainSources);

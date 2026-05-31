@@ -35,13 +35,13 @@ function PatternCard({ pattern }) {
 
   return (
     <div
-      className="group rounded-xl border border-[rgba(99,102,241,0.12)] bg-surface/40 hover:bg-surface/70 hover:border-[rgba(99,102,241,0.25)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 overflow-hidden"
+      className="group rounded-xl border border-[rgba(212,150,58,0.12)] bg-surface/40 hover:bg-surface/70 hover:border-[rgba(212,150,58,0.25)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 overflow-hidden"
     >
       <div className="p-4 flex flex-col justify-between h-full">
         <div>
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-2xl shrink-0 p-1.5 rounded-lg bg-slate-900/60 border border-[rgba(99,102,241,0.08)] leading-none">{pattern.emoji}</span>
+              <span className="text-2xl shrink-0 p-1.5 rounded-lg bg-slate-900/60 border border-[rgba(212,150,58,0.08)] leading-none">{pattern.emoji}</span>
               <div className="min-w-0">
                 <div className="text-[13px] font-bold text-slate-100 leading-snug">
                   {pattern.type}
@@ -69,7 +69,7 @@ function PatternCard({ pattern }) {
             <ConfidenceBar value={pattern.confidence} direction={pattern.direction} />
           </div>
 
-          <p className="text-[11.5px] text-slate-400 leading-relaxed mt-4 border-t border-[rgba(99,102,241,0.06)] pt-3">
+          <p className="text-[11.5px] text-slate-400 leading-relaxed mt-4 border-t border-[rgba(212,150,58,0.06)] pt-3">
             {pattern.description}
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function PatternPanel({ patterns = [] }) {
 
   return (
     <div className="space-y-4">
-      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(99,102,241,0.1)]">
+      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-[rgba(212,150,58,0.1)]">
         Candlestick Pattern Matrix
         <span className="ml-2 text-accent-light font-normal">({patterns.length} patterns identified)</span>
       </div>
