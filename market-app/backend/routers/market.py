@@ -172,20 +172,72 @@ def list_symbols():
 
 @router.get("/sectors")
 def sector_summary(exchange: Optional[str] = "NSE"):
-    """Aggregate avg change_pct per sector for the heatmap."""
-    out: dict[str, dict] = {}
+    """Aggregate sector breadth and attach the full stock list for each sector."""
+    all_quotes = cache_get("all_quotes:NSE") or {}
+    sectors: dict[str, dict] = {}
+
     for sym in NIFTY50:
         name, sector = SYMBOL_META.get(sym, (sym, "Other"))
-        q = cache_get(f"quote:{sym}")
-        if not q:
-            continue
-        d = out.setdefault(sector, {"sector": sector, "count": 0, "sum_pct": 0.0})
-        d["count"] += 1
-        d["sum_pct"] += float(q.get("change_pct", 0))
-    return [
-        {"sector": k, "avg_change_pct": (v["sum_pct"] / v["count"]) if v["count"] else 0.0, "count": v["count"]}
-        for k, v in sorted(out.items())
-    ]
+        quote = all_quotes.get(sym) or cache_get(f"quote:{sym}") or {}
+
+        bucket = sectors.setdefault(
+            sector,
+            {
+                "sector": sector,
+                "count": 0,
+                "sum_pct": 0.0,
+                "advance_count": 0,
+                "decline_count": 0,
+                "stocks": [],
+            },
+        )
+
+        change_pct = quote.get("change_pct")
+        if change_pct is not None:
+            bucket["count"] += 1
+            bucket["sum_pct"] += float(change_pct)
+            if float(change_pct) > 0:
+                bucket["advance_count"] += 1
+            elif float(change_pct) < 0:
+                bucket["decline_count"] += 1
+
+        bucket["stocks"].append(
+            {
+                "symbol": sym,
+                "name": name,
+                "price": quote.get("price"),
+                "change": quote.get("change"),
+                "change_pct": change_pct,
+                "volume": quote.get("volume"),
+                "market_cap": quote.get("market_cap"),
+                "stale": quote.get("stale", True),
+            }
+        )
+
+    result = []
+    for sector_name, payload in sorted(sectors.items()):
+        count = len(payload["stocks"])
+        active_count = payload["count"]
+        result.append(
+            {
+                "sector": sector_name,
+                "count": count,
+                "active_count": active_count,
+                "avg_change_pct": (payload["sum_pct"] / active_count) if active_count else 0.0,
+                "advance_count": payload["advance_count"],
+                "decline_count": payload["decline_count"],
+                "stocks": sorted(
+                    payload["stocks"],
+                    key=lambda item: (
+                        item["change_pct"] is None,
+                        -(item["change_pct"] or 0.0),
+                        item["symbol"],
+                    ),
+                ),
+            }
+        )
+
+    return result
 
 
 @router.get("/fundamentals/{symbol}")
