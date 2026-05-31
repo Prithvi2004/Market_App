@@ -464,3 +464,156 @@ def get_indicators(symbol: str, range: str = "3M"):
     except Exception as e:
         log.exception("Pandas-ta indicators calculation failed for %s", symbol)
         raise HTTPException(status_code=500, detail=f"Could not calculate indicators: {e}")
+
+
+# ---------- Added for Advanced Analytics Suite ----------
+
+@router.post("/portfolio/risk")
+def get_portfolio_risk(req: models.PortfolioRiskRequest):
+    """Calculate portfolio risk: Beta, correlation matrix, and 30-day Monte Carlo."""
+    from utils.risk_engine import calculate_risk_metrics
+    
+    holdings_dict = [h.model_dump() for h in req.holdings]
+    if not holdings_dict:
+        return {"error": "Portfolio holdings are empty"}
+        
+    try:
+        metrics = calculate_risk_metrics(holdings_dict, period=req.period)
+        if "error" in metrics:
+            raise HTTPException(status_code=500, detail=metrics["error"])
+        return metrics
+    except Exception as e:
+        log.exception("Failed to calculate portfolio risk metrics")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/screener")
+def get_screener_alerts():
+    """Scan Nifty 50 for active technical breakouts and candlestick patterns (cached 15m)."""
+    cache_key = "screener_alerts"
+    cached = cache_get(cache_key)
+    if cached:
+        return cached
+
+    from config import NIFTY50, SYMBOL_META
+    import numpy as np
+    import pandas as pd
+    
+    alerts = []
+    
+    # Loop over Nifty 50 stocks
+    for sym in NIFTY50:
+        try:
+            # Check cached quote or fetch daily price history (1 month is enough for pattern and EMA crosses)
+            hist = yf.Ticker(sym).history(period="3mo", interval="1d")
+            if hist.empty or len(hist) < 20:
+                continue
+                
+            df = hist.copy()
+            close_prices = df["Close"]
+            open_prices = df["Open"]
+            high_prices = df["High"]
+            low_prices = df["Low"]
+            
+            # EMA calculations
+            ema20 = df.ta.ema(length=20) if hasattr(df, "ta") else close_prices.ewm(span=20, adjust=False).mean()
+            ema50 = df.ta.ema(length=50) if hasattr(df, "ta") else close_prices.ewm(span=50, adjust=False).mean()
+            
+            # RSI calculation
+            if hasattr(df, "ta"):
+                rsi = df.ta.rsi(length=14)
+            else:
+                delta = close_prices.diff()
+                gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+                loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+                rs = gain / loss
+                rsi = 100 - (100 / (1 + rs))
+
+            # Bollinger Bands
+            if hasattr(df, "ta"):
+                bb = df.ta.bbands(length=20, std=2)
+                bbl = bb.iloc[:, 0]
+                bbm = bb.iloc[:, 1]
+                bbu = bb.iloc[:, 2]
+            else:
+                std = close_prices.rolling(window=20).std()
+                bbm = close_prices.rolling(window=20).mean()
+                bbu = bbm + (2 * std)
+                bbl = bbm - (2 * std)
+                
+            # Latest row indices
+            c_val = float(close_prices.iloc[-1])
+            c_prev = float(close_prices.iloc[-2])
+            o_val = float(open_prices.iloc[-1])
+            o_prev = float(open_prices.iloc[-2])
+            h_val = float(high_prices.iloc[-1])
+            l_val = float(low_prices.iloc[-1])
+            
+            r_val = float(rsi.iloc[-1]) if not pd.isna(rsi.iloc[-1]) else 50.0
+            r_prev = float(rsi.iloc[-2]) if not pd.isna(rsi.iloc[-2]) else 50.0
+            
+            e20 = float(ema20.iloc[-1]) if not pd.isna(ema20.iloc[-1]) else c_val
+            e50 = float(ema50.iloc[-1]) if not pd.isna(ema50.iloc[-1]) else c_val
+            e20_prev = float(ema20.iloc[-2]) if not pd.isna(ema20.iloc[-2]) else c_prev
+            e50_prev = float(ema50.iloc[-2]) if not pd.isna(ema50.iloc[-2]) else c_prev
+            
+            bu = float(bbu.iloc[-1]) if not pd.isna(bbu.iloc[-1]) else c_val
+            bl = float(bbl.iloc[-1]) if not pd.isna(bbl.iloc[-1]) else c_val
+            
+            active_signals = []
+            
+            # 1. Candlestick patterns
+            # Doji
+            body = abs(o_val - c_val)
+            rng = h_val - l_val
+            if rng > 0 and body <= 0.05 * rng:
+                active_signals.append({"type": "Pattern", "name": "Doji", "direction": "neutral", "desc": "Market indecision near current range."})
+                
+            # Hammer
+            elif rng > 0 and rng > 3 * body and (c_val - l_val) / rng >= 0.6 and (o_val - l_val) / rng >= 0.6:
+                active_signals.append({"type": "Pattern", "name": "Hammer", "direction": "bullish", "desc": "Bullish reversal shadow detected near lows."})
+                
+            # Engulfing
+            if c_val > o_val and c_prev < o_prev and c_val >= o_prev and o_val <= c_prev:
+                active_signals.append({"type": "Pattern", "name": "Bullish Engulfing", "direction": "bullish", "desc": "Buyers fully overtake sellers in 1 candle."})
+            elif c_val < o_val and c_prev > o_prev and c_val <= o_prev and o_val >= c_prev:
+                active_signals.append({"type": "Pattern", "name": "Bearish Engulfing", "direction": "bearish", "desc": "Sellers fully overtake buyers in 1 candle."})
+                
+            # 2. Indicator Breakouts
+            # Golden Cross / Death Cross
+            if e20 > e50 and e20_prev <= e50_prev:
+                active_signals.append({"type": "Breakout", "name": "Golden Crossover", "direction": "bullish", "desc": "EMA 20 crossed above EMA 50."})
+            elif e20 < e50 and e20_prev >= e50_prev:
+                active_signals.append({"type": "Breakout", "name": "Death Crossover", "direction": "bearish", "desc": "EMA 20 crossed below EMA 50."})
+                
+            # RSI Overbought / Oversold
+            if r_val < 30 and r_prev >= 30:
+                active_signals.append({"type": "Breakout", "name": "RSI Oversold", "direction": "bullish", "desc": "RSI crossed below 30, signaling oversold bounce."})
+            elif r_val > 70 and r_prev <= 70:
+                active_signals.append({"type": "Breakout", "name": "RSI Overbought", "direction": "bearish", "desc": "RSI crossed above 70, signaling overbought correction."})
+                
+            # Bollinger Bands
+            if c_val > bu and c_prev <= bu:
+                active_signals.append({"type": "Breakout", "name": "Bollinger Band Breakout Up", "direction": "bullish", "desc": "Close price broke out above Upper Bollinger Band."})
+            elif c_val < bl and c_prev >= bl:
+                active_signals.append({"type": "Breakout", "name": "Bollinger Band Breakout Down", "direction": "bearish", "desc": "Close price broke out below Lower Bollinger Band."})
+
+            if active_signals:
+                name, sector = SYMBOL_META.get(sym, (sym, "Other"))
+                alerts.append({
+                    "symbol": sym,
+                    "name": name,
+                    "sector": sector,
+                    "price": c_val,
+                    "change_pct": float(((c_val - c_prev) / c_prev) * 100) if c_prev else 0.0,
+                    "rsi": r_val,
+                    "signals": active_signals
+                })
+        except Exception:
+            # Skip errors on individual stocks to complete scan
+            pass
+
+    # Sort alerts by symbol
+    alerts = sorted(alerts, key=lambda x: x["symbol"])
+    cache_set(cache_key, alerts, ttl=900)  # cache for 15 minutes
+    return alerts

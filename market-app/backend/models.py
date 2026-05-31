@@ -89,3 +89,32 @@ class SearchHit(BaseModel):
     symbol: str
     name: str
     exchange: str
+
+
+# ---------- Added for Advanced Analytics Suite ----------
+
+class ChatMessage(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
+
+class CopilotChatRequest(BaseModel):
+    symbol: str
+    history: list[ChatMessage] = []
+    user_query: str
+
+
+class CompareExplainRequest(BaseModel):
+    target_symbol: str
+    compare_symbols: list[str]
+
+
+class PortfolioHolding(BaseModel):
+    symbol: str
+    quantity: float
+    price: float
+
+
+class PortfolioRiskRequest(BaseModel):
+    holdings: list[PortfolioHolding]
+    period: str = "1y"

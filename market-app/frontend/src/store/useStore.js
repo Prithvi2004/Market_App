@@ -63,6 +63,33 @@ const useAppStore = create((set, get) => ({
   analysisStandalone: false,
   setAnalysisStandalone: (b) => set({ analysisStandalone: b }),
 
+  // ── Advanced Analytics Suite States ────────────────────────────
+  // Screener
+  screenerAlerts: [],
+  setScreenerAlerts: (a) => set({ screenerAlerts: a }),
+  screenerFilter: "all",
+  setScreenerFilter: (f) => set({ screenerFilter: f }),
+
+  // Peer Compare
+  compareSymbols: [],
+  addCompareSymbol: (sym) => set((s) => {
+    if (s.compareSymbols.includes(sym) || s.compareSymbols.length >= 3) return {};
+    return { compareSymbols: [...s.compareSymbols, sym] };
+  }),
+  removeCompareSymbol: (sym) => set((s) => ({
+    compareSymbols: s.compareSymbols.filter((x) => x !== sym)
+  })),
+  clearCompare: () => set({ compareSymbols: [] }),
+
+  // Copilot Chat
+  copilotMessages: [],
+  addCopilotMessage: (msg) => set((s) => ({
+    copilotMessages: [...s.copilotMessages, msg]
+  })),
+  clearCopilotHistory: () => set({ copilotMessages: [] }),
+  copilotLoading: false,
+  setCopilotLoading: (b) => set({ copilotLoading: b }),
+
   // ── Portfolio overlay ─────────────────────────────────────────
   portfolioOpen: false,
   setPortfolioOpen: (b) => set({ portfolioOpen: b }),

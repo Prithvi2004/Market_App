@@ -35,6 +35,12 @@ const AIInsightPanel = lazy(() => import("./analysis/AIInsightPanel.jsx"));
 const AdvancedPanel = lazy(() => import("./analysis/AdvancedPanel.jsx"));
 const PredictPanel = lazy(() => import("./analysis/PredictPanel.jsx"));
 
+// Lazy load Advanced Suite Panels
+const CopilotChat = lazy(() => import("./analysis/CopilotChat.jsx"));
+const PeerComparePanel = lazy(() => import("./analysis/PeerComparePanel.jsx"));
+const RiskAnalyticsPanel = lazy(() => import("./analysis/RiskAnalyticsPanel.jsx"));
+const ExportReport = lazy(() => import("./analysis/ExportReport.jsx"));
+
 const TIMEFRAMES = ["1D", "1W", "1M", "3M", "6M", "1Y", "2Y", "5Y"];
 const CHART_TYPES = [
   { id: "Candlestick", icon: "🕯️", label: "Candle" },
@@ -56,6 +62,10 @@ const INDICATORS = [
 ];
 const RIGHT_TABS = [
   { id: "ai", label: "AI", icon: "✨" },
+  { id: "copilot", label: "Co-Pilot", icon: "💬" },
+  { id: "compare", label: "Compare", icon: "👥" },
+  { id: "risk", label: "Risk", icon: "🛡️" },
+  { id: "export", label: "Export", icon: "📋" },
   { id: "predict", label: "Predict", icon: "🔮" },
   { id: "advanced", label: "Advanced", icon: "🧠" },
   { id: "technicals", label: "Technical", icon: "📊" },
@@ -1330,6 +1340,18 @@ export default function AnalysisTerminal({
                   }}
                 >
                   <Suspense fallback={<PanelSkeleton />}>
+                    {rightTab === "copilot" && (
+                      <CopilotChat symbol={symbol} />
+                    )}
+                    {rightTab === "compare" && (
+                      <PeerComparePanel symbol={symbol} />
+                    )}
+                    {rightTab === "risk" && (
+                      <RiskAnalyticsPanel />
+                    )}
+                    {rightTab === "export" && (
+                      <ExportReport symbol={symbol} />
+                    )}
                     {rightTab === "ai" && (
                       <AIInsightPanel
                         symbol={symbol}

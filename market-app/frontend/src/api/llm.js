@@ -61,3 +61,31 @@ export async function streamImpact({ headline, summary = "" }, handlers, signal)
     handlers[ev.event]?.(ev.data);
   }
 }
+
+export async function streamCopilot({ symbol, history = [], user_query }, handlers, signal) {
+  const resp = await fetch(getUrl("/api/copilot/chat"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbol, history, user_query }),
+    signal,
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  for await (const ev of readEvents(resp)) {
+    if (signal?.aborted) break;
+    handlers[ev.event]?.(ev.data);
+  }
+}
+
+export async function streamCompare({ target_symbol, compare_symbols = [] }, handlers, signal) {
+  const resp = await fetch(getUrl("/api/compare/explain"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ target_symbol, compare_symbols }),
+    signal,
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  for await (const ev of readEvents(resp)) {
+    if (signal?.aborted) break;
+    handlers[ev.event]?.(ev.data);
+  }
+}

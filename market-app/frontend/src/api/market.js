@@ -130,3 +130,36 @@ export const usePeers = (symbol) =>
     enabled: !!symbol,
     staleTime: 5 * 60_000,
   });
+
+// ---------- Added for Advanced Analytics Suite ----------
+
+export const useScreenerAlerts = () =>
+  useQuery({
+    queryKey: ["screener:alerts"],
+    queryFn: () => j("/api/screener"),
+    refetchInterval: 15 * 60_000, // every 15 mins (server caches internally)
+    staleTime: 5 * 60_000,
+  });
+
+export const usePortfolioRisk = (holdings, period = "1y") =>
+  useQuery({
+    queryKey: ["portfolio:risk", holdings, period],
+    queryFn: () =>
+      fetch(getUrl("/api/portfolio/risk"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          holdings: holdings.map((h) => ({
+            symbol: h.symbol,
+            quantity: parseFloat(h.qty || h.quantity || 0),
+            price: parseFloat(h.buy_price || h.price || 0),
+          })),
+          period,
+        }),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      }),
+    enabled: !!holdings && holdings.length > 0,
+    staleTime: 5 * 60_000,
+  });

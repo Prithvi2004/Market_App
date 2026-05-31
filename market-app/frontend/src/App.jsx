@@ -14,6 +14,7 @@ import ImpactAnalyzer from "./components/ImpactAnalyzer.jsx";
 import PortfolioTracker from "./components/PortfolioTracker.jsx";
 import AnalysisTerminal from "./components/AnalysisTerminal.jsx";
 import PatternGuide from "./components/PatternGuide.jsx";
+import ScreenerDashboard from "./components/ScreenerDashboard.jsx";
 
 // ─── WebSocket hook ───────────────────────────────────────────────────────────
 function useLivePricesWS() {
@@ -69,6 +70,7 @@ const TABS = [
   { id: "markets", label: "Markets", icon: "📈" },
   { id: "news", label: "News", icon: "📰" },
   { id: "sectors", label: "Sectors", icon: "🗺️" },
+  { id: "screener", label: "Screener", icon: "🔍" },
   { id: "guide", label: "Guide", icon: "📖" },
 ];
 
@@ -513,6 +515,7 @@ export default function App() {
   const mainContent = () => {
     if (activeTab === "markets") return <MarketDashboard />;
     if (activeTab === "sectors") return <SectorHeatmap />;
+    if (activeTab === "screener") return <ScreenerDashboard />;
     if (activeTab === "guide") return <PatternGuide />;
     return null;
   };
@@ -521,7 +524,7 @@ export default function App() {
   const gridCols =
     activeTab === "news"
       ? "md:grid-cols-1"
-      : newsCollapsed || activeTab === "sectors" || activeTab === "guide"
+      : newsCollapsed || activeTab === "sectors" || activeTab === "screener" || activeTab === "guide"
         ? "md:grid-cols-1"
         : "md:grid-cols-3";
 
@@ -661,7 +664,7 @@ export default function App() {
         {activeTab !== "news" && (
           <div
             className={`space-y-4 ${
-              newsCollapsed || activeTab === "sectors" || activeTab === "guide"
+              newsCollapsed || activeTab === "sectors" || activeTab === "screener" || activeTab === "guide"
                 ? "md:col-span-1"
                 : "md:col-span-2"
             }`}
