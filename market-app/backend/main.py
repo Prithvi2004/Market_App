@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from cache import cache_get
 from config import INDICES, settings
@@ -191,6 +192,20 @@ async def server_error_logging_middleware(request, call_next):
             method, full_path, client_ip, duration_ms, error_msg, tb_str
         )
         raise exc
+
+class ClientLogPayload(BaseModel):
+    level: str = "INFO"
+    tag: str = "MOBILE"
+    message: str
+    details: str | None = None
+
+@app.post("/api/client-logs")
+def receive_client_log(payload: ClientLogPayload):
+    if payload.level == "ERROR":
+        log.error("📱 [MOBILE APK ERROR] [%s] %s %s", payload.tag, payload.message, payload.details or "")
+    else:
+        log.info("📱 [MOBILE APK LOG] [%s] %s", payload.tag, payload.message)
+    return {"status": "received"}
 
 @app.get("/api/health")
 def health():

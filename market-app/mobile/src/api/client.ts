@@ -1,7 +1,8 @@
 /**
  * Base API client for the MarketPulse backend.
  *
- * Automatically resolves your FastAPI backend URL with fallback to production Render URL.
+ * Automatically resolves your FastAPI backend URL with fallback to production Render URL
+ * and streams client logs to centralized backend logger.
  */
 import Constants from 'expo-constants';
 import { toast } from '../components/ui/Toast';
@@ -18,10 +19,7 @@ const PRODUCTION_URL = 'https://market-app-03va.onrender.com';
 const DEFAULT_LAN_URL = 'http://172.29.230.244:8000';
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// Resolve active API Base URL:
-// 1. Explicit EXPO_PUBLIC_API_URL (if provided)
-// 2. Local metro rawHost (when running in dev mode on local Wi-Fi)
-// 3. Live production Render URL (for standalone APK builds)
+// Resolve active API Base URL
 export const API_BASE_URL = (
   ENV_URL ||
   (rawHost && !isTunnel ? `http://${rawHost}:8000` : PRODUCTION_URL)
@@ -34,7 +32,20 @@ export const WS_BASE_URL = API_BASE_URL
 
 // Track last 503 timestamp to prevent toast spamming on background 10s polls
 let _last503ToastTime = 0;
-const TOAST_503_COOLDOWN_MS = 60_000; // Only toast 503 once per 60 seconds max
+const TOAST_503_COOLDOWN_MS = 60_000;
+
+/**
+ * Send non-blocking remote log telemetry to central server logger.
+ */
+function sendClientLogRemote(level: 'INFO' | 'ERROR', message: string, details?: string) {
+  try {
+    fetch(`${API_BASE_URL}/api/client-logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level, tag: 'MOBILE_APK', message, details }),
+    }).catch(() => {});
+  } catch {}
+}
 
 /**
  * Resolve a relative path like "/api/indices" into a full URL.
@@ -45,7 +56,7 @@ export function apiUrl(path: string): string {
 }
 
 /**
- * Standard JSON GET helper with detailed debugging logs, automatic tunnel failover & suppressed 503 toast spamming.
+ * Standard JSON GET helper with detailed debugging logs, telemetry streamer & 503 cooldown.
  */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let url = apiUrl(path);
@@ -94,10 +105,11 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
         detail = body?.detail ?? detail;
       } catch {}
 
-      console.error(
-        `[API Error] ❌ ${response.status} ${method} ${url} (${duration}ms) — Detail: "${detail}"`,
-        rawText ? `Raw response: ${rawText.slice(0, 300)}` : ''
-      );
+      const errLog = `[API Error] ❌ ${response.status} ${method} ${url} (${duration}ms) — Detail: "${detail}"`;
+      console.error(errLog, rawText ? `Raw response: ${rawText.slice(0, 300)}` : '');
+
+      // Stream error telemetry to backend logger
+      sendClientLogRemote('ERROR', errLog, rawText.slice(0, 300));
 
       // Handle 503 Service Unavailable gracefully
       if (response.status === 503) {
@@ -120,7 +132,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     return data as T;
   } catch (err: any) {
     const duration = Date.now() - startT;
-    console.error(`[API Network Error] 💥 ${method} ${url} (${duration}ms):`, err?.message || err);
+    const errMsg = `[API Network Error] 💥 ${method} ${url} (${duration}ms): ${err?.message || err}`;
+    console.error(errMsg);
+
+    sendClientLogRemote('ERROR', errMsg, err?.stack);
 
     if (err?.name !== 'AbortError' && !err?.message?.includes('HTTP')) {
       toast.error('Network Error', 'Failed to reach FastAPI backend');
