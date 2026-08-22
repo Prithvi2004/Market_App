@@ -1,26 +1,30 @@
 /**
  * Base API client for the MarketPulse backend.
  *
- * Automatically resolves your FastAPI backend URL (http://192.168.0.102:8000)
- * across LAN, Tunnel, and Emulator environments with automatic failover.
+ * Automatically resolves your FastAPI backend URL with fallback to production Render URL.
  */
 import Constants from 'expo-constants';
 import { toast } from '../components/ui/Toast';
 
 // Extract host from Expo bundler
 const debuggerHost = Constants.expoConfig?.hostUri ?? '';
-const rawHost = debuggerHost ? debuggerHost.split(':')[0] : 'localhost';
+const rawHost = debuggerHost ? debuggerHost.split(':')[0] : '';
 
 // Detect if running under Expo Tunnel mode (*.exp.direct)
 const isTunnel = rawHost.includes('.exp.direct') || rawHost.includes('anonymous');
 
-// Default active LAN IP for FastAPI backend
+// Production & Fallback URLs
+const PRODUCTION_URL = 'https://market-app-03va.onrender.com';
 const DEFAULT_LAN_URL = 'http://172.29.230.244:8000';
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// If in Tunnel mode or ENV is defined, use the proper backend URL
+// Resolve active API Base URL:
+// 1. Explicit EXPO_PUBLIC_API_URL (if provided)
+// 2. Local metro rawHost (when running in dev mode on local Wi-Fi)
+// 3. Live production Render URL (for standalone APK builds)
 export const API_BASE_URL = (
-  ENV_URL || (isTunnel ? DEFAULT_LAN_URL : `http://${rawHost}:8000`)
+  ENV_URL ||
+  (rawHost && !isTunnel ? `http://${rawHost}:8000` : PRODUCTION_URL)
 ).replace(/\/$/, '');
 
 // WS base is derived automatically from the API base
@@ -64,10 +68,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   try {
     let response = await performFetch(url);
 
-    // If public tunnel returns 503 Tunnel Unavailable, try falling back to local LAN IP directly
-    if (response.status === 503 && url.includes('.loca.lt')) {
-      const fallbackUrl = `${DEFAULT_LAN_URL}${path.startsWith('http') ? '' : path}`;
-      console.warn(`[API 503 Tunnel Failover] ⚠️ Tunnel unavailable. Falling back to local LAN: ${fallbackUrl}`);
+    // If local LAN URL fails, automatically fall back to live production Render URL
+    if (!response.ok && url.includes('172.29.230.244')) {
+      const fallbackUrl = `${PRODUCTION_URL}${path.startsWith('http') ? '' : path}`;
+      console.warn(`[API Failover] ⚠️ Local LAN unreachable. Falling back to Production: ${fallbackUrl}`);
       try {
         const fallbackResponse = await performFetch(fallbackUrl);
         if (fallbackResponse.ok) {
@@ -75,7 +79,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
           url = fallbackUrl;
         }
       } catch {
-        // Ignore fallback failure, use primary error handling below
+        // Ignore fallback error
       }
     }
 
@@ -95,7 +99,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
         rawText ? `Raw response: ${rawText.slice(0, 300)}` : ''
       );
 
-      // Handle 503 Service Unavailable gracefully (localtunnel / yfinance rate limit)
+      // Handle 503 Service Unavailable gracefully
       if (response.status === 503) {
         const now = Date.now();
         if (now - _last503ToastTime > TOAST_503_COOLDOWN_MS) {
