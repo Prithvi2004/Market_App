@@ -1,5 +1,5 @@
 /**
- * Root layout — sets up QueryClient, SafeAreaProvider, fonts, Toast notifications, and global styles.
+ * Root layout — sets up QueryClient, SafeAreaProvider, fonts, Toast notifications, UpdateModal, and global styles.
  */
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
@@ -21,6 +21,7 @@ import {
 import { DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import { useLivePricesWS } from '../src/hooks/useWebSocket';
 import { ToastContainer } from '../src/components/ui/Toast';
+import { UpdateModal } from '../src/components/ui/UpdateModal';
 import { colors } from '../src/theme/colors';
 
 SplashScreen.preventAutoHideAsync();
@@ -64,6 +65,7 @@ export default function RootLayout() {
         <View style={styles.root}>
           <StatusBar style="light" />
           <ToastContainer />
+          <UpdateModal />
           <WSProvider />
           <Stack
             screenOptions={{
