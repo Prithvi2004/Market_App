@@ -149,6 +149,49 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def server_error_logging_middleware(request, call_next):
+    import time
+    import traceback
+    start_time = time.time()
+    client_ip = request.client.host if request.client else "unknown"
+    method = request.method
+    path = request.url.path
+    query = f"?{request.url.query}" if request.url.query else ""
+    full_path = f"{path}{query}"
+
+    try:
+        response = await call_next(request)
+        duration_ms = round((time.time() - start_time) * 1000, 1)
+        status_code = response.status_code
+
+        if status_code >= 500:
+            log.error(
+                "🔴 [SERVER ERROR %d] %s %s from IP %s (took %sms)",
+                status_code, method, full_path, client_ip, duration_ms
+            )
+        elif status_code >= 400:
+            log.warning(
+                "🟡 [CLIENT ERROR %d] %s %s from IP %s (took %sms)",
+                status_code, method, full_path, client_ip, duration_ms
+            )
+        else:
+            log.info(
+                "🟢 [HTTP %d] %s %s (took %sms)",
+                status_code, method, full_path, duration_ms
+            )
+        return response
+    except Exception as exc:
+        duration_ms = round((time.time() - start_time) * 1000, 1)
+        error_msg = str(exc)
+        tb_str = traceback.format_exc()
+        log.error(
+            "💥 [UNHANDLED BACKEND EXCEPTION] %s %s from IP %s (took %sms)\nError: %s\nTraceback:\n%s",
+            method, full_path, client_ip, duration_ms, error_msg, tb_str
+        )
+        raise exc
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}

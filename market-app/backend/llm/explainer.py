@@ -1,15 +1,15 @@
-"""Ollama streaming explainer with 5-min result cache."""
+"""Ollama streaming explainer with OpenRouter fallback and 5-min result cache."""
 from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
 from typing import AsyncIterator, Optional
 
 import httpx
 
 from cache import cache_get, cache_set
 from config import settings
+from llm.openrouter import stream_openrouter
 
 log = logging.getLogger(__name__)
 
@@ -29,11 +29,9 @@ def build_prompt(symbol: str, quote: dict, articles: list[dict]) -> str:
         for a in articles[:5]
     ) or "- (no recent related news found)"
 
-    # 52W position context
     price = quote.get('price', 0)
     high_52w = quote.get('high_52w', price) or price
     low_52w = quote.get('low_52w', price) or price
-    range_52w = high_52w - low_52w
     pct_from_high = ((high_52w - price) / high_52w * 100) if high_52w else 0
     position = "near 52W high" if pct_from_high < 5 else ("near 52W low" if pct_from_high > 85 else "mid-range")
 
@@ -50,8 +48,7 @@ Explain the likely reasons for today's price movement based on the above data an
 
 
 async def stream_explain(prompt: str, cache_key: Optional[str] = None) -> AsyncIterator[str]:
-    """Yield text chunks from Ollama with fallback models. On failure, yield a single error string."""
-    # Check cache first
+    """Yield text chunks from Ollama with fallback models, then OpenRouter stealth/ox-alpha fallback."""
     if cache_key:
         cached = cache_get(f"explain_cache:{cache_key}")
         if cached:
@@ -66,10 +63,7 @@ async def stream_explain(prompt: str, cache_key: Optional[str] = None) -> AsyncI
     for model in models:
         try:
             base_url = settings.ollama_url.rstrip("/")
-            if base_url.endswith("/api"):
-                url = f"{base_url}/generate"
-            else:
-                url = f"{base_url}/api/generate"
+            url = f"{base_url}/generate" if base_url.endswith("/api") else f"{base_url}/api/generate"
 
             headers = {}
             if settings.ollama_api_key:
@@ -84,7 +78,7 @@ async def stream_explain(prompt: str, cache_key: Optional[str] = None) -> AsyncI
             async with httpx.AsyncClient(timeout=httpx.Timeout(180.0, connect=10.0)) as client:
                 async with client.stream("POST", url, json=payload, headers=headers) as resp:
                     if resp.status_code != 200:
-                        log.warning("Model %s failed with HTTP %d, trying next", model, resp.status_code)
+                        log.warning("Ollama model %s failed with HTTP %d, trying next", model, resp.status_code)
                         continue
                     async for line in resp.aiter_lines():
                         if not line:
@@ -98,20 +92,25 @@ async def stream_explain(prompt: str, cache_key: Optional[str] = None) -> AsyncI
                             full_response += chunk
                             yield chunk
                         if obj.get("done"):
-                            # Cache the full response
                             if cache_key and full_response:
                                 cache_set(f"explain_cache:{cache_key}", full_response, ttl=CACHE_TTL_SECONDS)
                             return
                     return
-        except httpx.ConnectError:
-            log.warning("Connection error with model %s, trying next", model)
-            if model == models[-1]:
-                yield "[error] LLM service unavailable. Start Ollama with: ollama serve"
-            continue
         except Exception as e:
-            log.warning("Error with model %s: %s, trying next", model, e)
-            if model == models[-1]:
-                yield f"[error] {e}"
+            log.warning("Error with Ollama model %s: %s, trying next", model, e)
             continue
 
-    yield "[error] All LLM models failed"
+    # Fallback to OpenRouter (stealth/ox-alpha) if configured
+    if settings.openrouter_api_key:
+        log.info("All Ollama models failed. Falling back to OpenRouter (%s)...", settings.openrouter_model)
+        try:
+            async for chunk in stream_openrouter(SYSTEM_PROMPT, prompt):
+                full_response += chunk
+                yield chunk
+            if cache_key and full_response:
+                cache_set(f"explain_cache:{cache_key}", full_response, ttl=CACHE_TTL_SECONDS)
+            return
+        except Exception as e:
+            log.error("OpenRouter fallback failed: %s", e)
+
+    yield "[error] All LLM models failed (Ollama & OpenRouter)"

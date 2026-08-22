@@ -1,11 +1,14 @@
-"""LLM Stock Co-pilot streaming assistant."""
+"""LLM Stock Co-pilot streaming assistant with OpenRouter fallback."""
 from __future__ import annotations
 
 import json
 import logging
 from typing import AsyncIterator, Optional
+
 import httpx
+
 from config import settings
+from llm.openrouter import stream_openrouter
 
 log = logging.getLogger(__name__)
 
@@ -19,15 +22,12 @@ Format your responses using clean Markdown. Keep responses clear and structured,
 
 
 def build_copilot_prompt(symbol: str, quote: dict, fundamentals: Optional[dict], news: list[dict], user_query: str) -> str:
-    """Build a detailed context prompt containing current quotes, fundamentals, and related news."""
-    # Format quote
     q_lines = f"""Price: ₹{quote.get('price', 0):.2f}
 Change today: {quote.get('change_pct', 0):+.2f}%
 52W High/Low: ₹{quote.get('high_52w', 0):.2f} / ₹{quote.get('low_52w', 0):.2f}
 Volume: {quote.get('volume', 0):,}
 Exchange: {quote.get('exchange', 'NSE')}"""
 
-    # Format fundamentals
     f_lines = "No fundamental metrics loaded."
     if fundamentals:
         f_lines = f"""Market Cap: {fundamentals.get('market_cap', '—')}
@@ -43,7 +43,6 @@ Beta vs Market: {fundamentals.get('beta', '—')}
 Analyst Rec Key: {fundamentals.get('analyst_recommendation', '—')}
 Target Price (Mean): {fundamentals.get('target_price', '—')}"""
 
-    # Format news
     news_lines = "\n".join(
         f"- [{a['source']}] {a['title']} (sentiment: {a['sentiment_label']}, {a['published_at']})"
         for a in news[:5]
@@ -73,19 +72,15 @@ async def stream_copilot(
     history: list[dict],
     user_query: str
 ) -> AsyncIterator[str]:
-    """Yield text chunks from Ollama for the conversational chat copilot, including conversation history."""
+    """Yield text chunks from Ollama with OpenRouter stealth/ox-alpha fallback."""
     models = [settings.ollama_model, settings.ollama_fallback, settings.ollama_fallback_2]
     system_prompt = COPILOT_SYSTEM.format(symbol=symbol)
-    
-    # Assembly messages for the LLM
-    # We will reconstruct a chat context. For Ollama '/api/chat' is better if supported,
-    # but to maintain consistency with the existing '/api/generate' SSE setup, we can compile history into the prompt text.
+
     formatted_history = ""
-    for msg in history[-8:]:  # keep last 8 messages
+    for msg in history[-8:]:
         role = "User" if msg["role"] == "user" else "Analyst"
         formatted_history += f"{role}: {msg['content']}\n\n"
 
-    # Context prompt with current query
     current_context = build_copilot_prompt(symbol, quote, fundamentals, news, user_query)
     full_prompt = f"{formatted_history}Current Query Context:\n{current_context}"
 
@@ -104,7 +99,7 @@ async def stream_copilot(
                 "prompt": full_prompt,
                 "stream": True,
             }
-            
+
             async with httpx.AsyncClient(timeout=httpx.Timeout(180.0, connect=10.0)) as client:
                 async with client.stream("POST", url, json=payload, headers=headers) as resp:
                     if resp.status_code != 200:
@@ -123,15 +118,18 @@ async def stream_copilot(
                         if obj.get("done"):
                             return
                     return
-        except httpx.ConnectError:
-            log.warning("Connection error with model %s in copilot, trying next", model)
-            if model == models[-1]:
-                yield "[error] LLM service unavailable. Check Ollama serve status."
-            continue
         except Exception as e:
-            log.warning("Error with model %s in copilot: %s, trying next", model, e)
-            if model == models[-1]:
-                yield f"[error] {e}"
+            log.warning("Error with Ollama model %s in copilot: %s, trying next", model, e)
             continue
 
-    yield "[error] All LLM models failed"
+    # Fallback to OpenRouter (stealth/ox-alpha)
+    if settings.openrouter_api_key:
+        log.info("All Ollama models failed in copilot. Falling back to OpenRouter (%s)...", settings.openrouter_model)
+        try:
+            async for chunk in stream_openrouter(system_prompt, full_prompt, messages=history[-8:] if history else None):
+                yield chunk
+            return
+        except Exception as e:
+            log.error("OpenRouter copilot fallback failed: %s", e)
+
+    yield "[error] All LLM models failed (Ollama & OpenRouter)"

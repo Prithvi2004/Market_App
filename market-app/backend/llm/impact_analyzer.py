@@ -1,4 +1,4 @@
-"""News headline → likely affected sectors/stocks (LLM-driven) with result cache."""
+"""News headline → likely affected sectors/stocks (LLM-driven) with OpenRouter fallback and result cache."""
 from __future__ import annotations
 
 import json
@@ -9,6 +9,7 @@ import httpx
 
 from cache import cache_get, cache_set
 from config import settings, SYMBOL_META
+from llm.openrouter import stream_openrouter
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +26,6 @@ def _sectors() -> list[str]:
 
 
 def _sector_stocks() -> dict[str, list[str]]:
-    """Map sector -> list of stock names."""
     out: dict[str, list[str]] = {}
     for sym, (name, sector) in SYMBOL_META.items():
         out.setdefault(sector, []).append(name)
@@ -53,7 +53,7 @@ Focus on sectors with clear impact. Skip sectors with no meaningful connection."
 
 
 async def stream_impact(headline: str, summary: str = "") -> AsyncIterator[str]:
-    """Yield text chunks from Ollama with fallback models."""
+    """Yield text chunks from Ollama with OpenRouter stealth/ox-alpha fallback."""
     cache_key = f"impact:{hash(headline + summary) & 0xffffffff}"
     cached = cache_get(cache_key)
     if cached:
@@ -64,14 +64,12 @@ async def stream_impact(headline: str, summary: str = "") -> AsyncIterator[str]:
 
     models = [settings.ollama_model, settings.ollama_fallback, settings.ollama_fallback_2]
     full_response = ""
+    prompt = build_impact_prompt(headline, summary)
 
     for model in models:
         try:
             base_url = settings.ollama_url.rstrip("/")
-            if base_url.endswith("/api"):
-                url = f"{base_url}/generate"
-            else:
-                url = f"{base_url}/api/generate"
+            url = f"{base_url}/generate" if base_url.endswith("/api") else f"{base_url}/api/generate"
 
             headers = {}
             if settings.ollama_api_key:
@@ -80,13 +78,13 @@ async def stream_impact(headline: str, summary: str = "") -> AsyncIterator[str]:
             payload = {
                 "model": model,
                 "system": IMPACT_SYSTEM,
-                "prompt": build_impact_prompt(headline, summary),
+                "prompt": prompt,
                 "stream": True,
             }
             async with httpx.AsyncClient(timeout=httpx.Timeout(180.0, connect=10.0)) as client:
                 async with client.stream("POST", url, json=payload, headers=headers) as resp:
                     if resp.status_code != 200:
-                        log.warning("Model %s failed with HTTP %d, trying next", model, resp.status_code)
+                        log.warning("Model %s failed with HTTP %d in impact, trying next", model, resp.status_code)
                         continue
                     async for line in resp.aiter_lines():
                         if not line:
@@ -104,15 +102,21 @@ async def stream_impact(headline: str, summary: str = "") -> AsyncIterator[str]:
                                 cache_set(cache_key, full_response, ttl=CACHE_TTL)
                             return
                     return
-        except httpx.ConnectError:
-            log.warning("Connection error with model %s, trying next", model)
-            if model == models[-1]:
-                yield "[error] LLM service unavailable. Start Ollama with: ollama serve"
-            continue
         except Exception as e:
-            log.warning("Error with model %s: %s, trying next", model, e)
-            if model == models[-1]:
-                yield f"[error] {e}"
+            log.warning("Error with Ollama model %s in impact: %s, trying next", model, e)
             continue
 
-    yield "[error] All LLM models failed"
+    # Fallback to OpenRouter (stealth/ox-alpha)
+    if settings.openrouter_api_key:
+        log.info("All Ollama models failed in impact. Falling back to OpenRouter (%s)...", settings.openrouter_model)
+        try:
+            async for chunk in stream_openrouter(IMPACT_SYSTEM, prompt):
+                full_response += chunk
+                yield chunk
+            if full_response:
+                cache_set(cache_key, full_response, ttl=CACHE_TTL)
+            return
+        except Exception as e:
+            log.error("OpenRouter impact fallback failed: %s", e)
+
+    yield "[error] All LLM models failed (Ollama & OpenRouter)"

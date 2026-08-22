@@ -161,3 +161,179 @@ async def compare_explain(req: CompareExplainRequest):
         yield _sse("done", {})
 
     return StreamingResponse(gen(), media_type="text/event-stream")
+
+
+@router.get("/llm/test")
+@router.post("/llm/test")
+async def test_llm_suite():
+    """
+    Test suite endpoint to check operational health of all 3 Ollama models + 1 OpenRouter model.
+    Returns status, HTTP status codes, latency, error details, and sample response for each model.
+    """
+    import asyncio
+    import time
+    import httpx
+    from config import settings
+
+    results = {}
+    working_count = 0
+
+    async def _test_ollama(model_name: str, key_name: str):
+        nonlocal working_count
+        if not model_name:
+            results[key_name] = {
+                "model": "not_configured",
+                "provider": "Ollama Cloud",
+                "status": "error",
+                "status_code": None,
+                "error": "Model name not set in config",
+                "latency_ms": 0,
+                "sample": None,
+            }
+            return
+
+        base_url = settings.ollama_url.rstrip("/")
+        url = f"{base_url}/generate" if base_url.endswith("/api") else f"{base_url}/api/generate"
+        headers = {}
+        if settings.ollama_api_key:
+            headers["Authorization"] = f"Bearer {settings.ollama_api_key}"
+
+        payload = {
+            "model": model_name,
+            "prompt": "Reply with 'OK'",
+            "stream": False,
+        }
+
+        start_t = time.time()
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(url, json=payload, headers=headers)
+                latency = round((time.time() - start_t) * 1000, 1)
+
+                if resp.status_code == 200:
+                    data = resp.json()
+                    sample = data.get("response", "").strip()
+                    working_count += 1
+                    results[key_name] = {
+                        "model": model_name,
+                        "provider": "Ollama Cloud",
+                        "status": "ok",
+                        "status_code": 200,
+                        "error": None,
+                        "latency_ms": latency,
+                        "sample": sample or "OK",
+                    }
+                else:
+                    results[key_name] = {
+                        "model": model_name,
+                        "provider": "Ollama Cloud",
+                        "status": "error",
+                        "status_code": resp.status_code,
+                        "error": f"HTTP {resp.status_code}: {resp.text[:200]}",
+                        "latency_ms": latency,
+                        "sample": None,
+                    }
+        except Exception as e:
+            latency = round((time.time() - start_t) * 1000, 1)
+            results[key_name] = {
+                "model": model_name,
+                "provider": "Ollama Cloud",
+                "status": "error",
+                "status_code": None,
+                "error": str(e),
+                "latency_ms": latency,
+                "sample": None,
+            }
+
+    async def _test_openrouter():
+        nonlocal working_count
+        model_name = settings.openrouter_model or "stealth/ox-alpha"
+        api_key = settings.openrouter_api_key
+
+        if not api_key:
+            results["openrouter_ox_alpha"] = {
+                "model": model_name,
+                "provider": "OpenRouter",
+                "status": "error",
+                "status_code": None,
+                "error": "OPENROUTER_API_KEY is not configured in backend/.env",
+                "latency_ms": 0,
+                "sample": None,
+            }
+            return
+
+        base_url = settings.openrouter_base_url.rstrip("/")
+        url = f"{base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://market-app.local",
+            "X-Title": "MarketPulse Test Suite",
+        }
+        payload = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": "Reply with 'OK'"}],
+            "stream": False,
+        }
+
+        start_t = time.time()
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                resp = await client.post(url, json=payload, headers=headers)
+                latency = round((time.time() - start_t) * 1000, 1)
+
+                if resp.status_code == 200:
+                    data = resp.json()
+                    choices = data.get("choices", [])
+                    sample = ""
+                    if choices:
+                        sample = choices[0].get("message", {}).get("content", "").strip()
+                    working_count += 1
+                    results["openrouter_ox_alpha"] = {
+                        "model": model_name,
+                        "provider": "OpenRouter",
+                        "status": "ok",
+                        "status_code": 200,
+                        "error": None,
+                        "latency_ms": latency,
+                        "sample": sample or "OK",
+                    }
+                else:
+                    results["openrouter_ox_alpha"] = {
+                        "model": model_name,
+                        "provider": "OpenRouter",
+                        "status": "error",
+                        "status_code": resp.status_code,
+                        "error": f"HTTP {resp.status_code}: {resp.text[:200]}",
+                        "latency_ms": latency,
+                        "sample": None,
+                    }
+        except Exception as e:
+            latency = round((time.time() - start_t) * 1000, 1)
+            results["openrouter_ox_alpha"] = {
+                "model": model_name,
+                "provider": "OpenRouter",
+                "status": "error",
+                "status_code": None,
+                "error": str(e),
+                "latency_ms": latency,
+                "sample": None,
+            }
+
+    await asyncio.gather(
+        _test_ollama(settings.ollama_model, "ollama_primary"),
+        _test_ollama(settings.ollama_fallback, "ollama_fallback_1"),
+        _test_ollama(settings.ollama_fallback_2, "ollama_fallback_2"),
+        _test_openrouter(),
+    )
+
+    return {
+        "status": "completed",
+        "summary": {
+            "total_models": 4,
+            "working_models": working_count,
+            "failing_models": 4 - working_count,
+        },
+        "results": results,
+    }
+

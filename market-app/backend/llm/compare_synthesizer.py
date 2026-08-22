@@ -1,11 +1,14 @@
-"""LLM Peer Comparison Synthesizer."""
+"""LLM Peer Comparison Synthesizer with OpenRouter fallback."""
 from __future__ import annotations
 
 import json
 import logging
 from typing import AsyncIterator
+
 import httpx
+
 from config import settings
+from llm.openrouter import stream_openrouter
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +23,6 @@ Be objective and data-driven. Citing specific numbers from the context. Keep you
 
 
 def build_compare_prompt(target_symbol: str, data_list: list[dict]) -> str:
-    """Build a side-by-side comparative table text for the LLM."""
     blocks = []
     for d in data_list:
         sym = d["symbol"]
@@ -42,7 +44,7 @@ Beta: {d.get('beta', '—')}
 52W High/Low: ₹{d.get('52w_high', 0):.2f} / ₹{d.get('52w_low', 0):.2f}
 Target price upside vs close: {d.get('target_upside_pct', '—')}%
 """)
-    
+
     comparative_text = "\n".join(blocks)
     return f"""Comparative Stock Data Matrix:
 {comparative_text}
@@ -50,7 +52,7 @@ Please write the comparative equity analysis report according to the guidelines.
 
 
 async def stream_compare(target_symbol: str, data_list: list[dict]) -> AsyncIterator[str]:
-    """Yield text chunks from Ollama for the side-by-side comparison narrative."""
+    """Yield text chunks from Ollama with OpenRouter stealth/ox-alpha fallback."""
     models = [settings.ollama_model, settings.ollama_fallback, settings.ollama_fallback_2]
     prompt = build_compare_prompt(target_symbol, data_list)
 
@@ -69,7 +71,7 @@ async def stream_compare(target_symbol: str, data_list: list[dict]) -> AsyncIter
                 "prompt": prompt,
                 "stream": True,
             }
-            
+
             async with httpx.AsyncClient(timeout=httpx.Timeout(180.0, connect=10.0)) as client:
                 async with client.stream("POST", url, json=payload, headers=headers) as resp:
                     if resp.status_code != 200:
@@ -88,15 +90,18 @@ async def stream_compare(target_symbol: str, data_list: list[dict]) -> AsyncIter
                         if obj.get("done"):
                             return
                     return
-        except httpx.ConnectError:
-            log.warning("Connection error with model %s in compare, trying next", model)
-            if model == models[-1]:
-                yield "[error] LLM service unavailable. Check Ollama server."
-            continue
         except Exception as e:
-            log.warning("Error with model %s in compare: %s, trying next", model, e)
-            if model == models[-1]:
-                yield f"[error] {e}"
+            log.warning("Error with Ollama model %s in compare: %s, trying next", model, e)
             continue
 
-    yield "[error] All LLM models failed"
+    # Fallback to OpenRouter (stealth/ox-alpha)
+    if settings.openrouter_api_key:
+        log.info("All Ollama models failed in compare. Falling back to OpenRouter (%s)...", settings.openrouter_model)
+        try:
+            async for chunk in stream_openrouter(COMPARE_SYSTEM, prompt):
+                yield chunk
+            return
+        except Exception as e:
+            log.error("OpenRouter compare fallback failed: %s", e)
+
+    yield "[error] All LLM models failed (Ollama & OpenRouter)"

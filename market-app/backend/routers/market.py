@@ -136,15 +136,33 @@ def get_chart(symbol: str, range: str = "1D"):
         raise HTTPException(status_code=502, detail=f"yfinance error: {e}")
     if hist.empty:
         return []
-    out = [
-        {
-            "t": idx.isoformat(),
-            "o": float(row["Open"]), "h": float(row["High"]),
-            "l": float(row["Low"]), "c": float(row["Close"]),
-            "v": int(row["Volume"]),
-        }
-        for idx, row in hist.iterrows()
-    ]
+    
+    import math
+
+    out = []
+    for idx, row in hist.iterrows():
+        try:
+            o = float(row["Open"]) if not pd.isna(row["Open"]) else 0.0
+            h = float(row["High"]) if not pd.isna(row["High"]) else 0.0
+            l = float(row["Low"]) if not pd.isna(row["Low"]) else 0.0
+            c = float(row["Close"]) if not pd.isna(row["Close"]) else 0.0
+            v = int(row["Volume"]) if not pd.isna(row["Volume"]) else 0
+
+            # Filter out NaN or Infinite floats which break json.dumps
+            if math.isnan(c) or math.isinf(c) or c <= 0:
+                continue
+
+            out.append({
+                "t": idx.isoformat(),
+                "o": 0.0 if (math.isnan(o) or math.isinf(o)) else o,
+                "h": 0.0 if (math.isnan(h) or math.isinf(h)) else h,
+                "l": 0.0 if (math.isnan(l) or math.isinf(l)) else l,
+                "c": c,
+                "v": 0 if (math.isnan(v) or math.isinf(v)) else v,
+            })
+        except Exception:
+            continue
+
     cache_set(cache_key, out, ttl=ttl)
     return out
 
@@ -375,24 +393,52 @@ def get_indicators(symbol: str, range: str = "3M"):
     try:
         df = hist.copy()
         
-        # Calculate indicators via pandas-ta
-        ema9 = df.ta.ema(length=9)
-        ema20 = df.ta.ema(length=20)
-        ema50 = df.ta.ema(length=50)
-        ema200 = df.ta.ema(length=200) if len(df) >= 200 else pd.Series(index=df.index, dtype='float64')
-        rsi = df.ta.rsi(length=14)
-        macd = df.ta.macd(fast=12, slow=26, signal=9)
-        bb = df.ta.bbands(length=20, std=2)
-        atr = df.ta.atr(length=14)
-        adx = df.ta.adx(length=14)
-        cmf = df.ta.cmf(length=20)
-        cci = df.ta.cci(length=20)
-        willr = df.ta.willr(length=14)
-        ichimoku, _ = df.ta.ichimoku(tenkan=9, kijun=26, senkou=52)
+        # Calculate indicators via pandas-ta with fallback to ta package
+        try:
+            import pandas_ta as pta
+            ema9 = df.ta.ema(length=9)
+            ema20 = df.ta.ema(length=20)
+            ema50 = df.ta.ema(length=50)
+            ema200 = df.ta.ema(length=200) if len(df) >= 200 else pd.Series(index=df.index, dtype='float64')
+            rsi = df.ta.rsi(length=14)
+            macd = df.ta.macd(fast=12, slow=26, signal=9)
+            bb = df.ta.bbands(length=20, std=2)
+            atr = df.ta.atr(length=14)
+            adx = df.ta.adx(length=14)
+            cmf = df.ta.cmf(length=20)
+            cci = df.ta.cci(length=20)
+            willr = df.ta.willr(length=14)
+            ichimoku, _ = df.ta.ichimoku(tenkan=9, kijun=26, senkou=52)
+        except Exception:
+            import ta.momentum as ta_momentum
+            import ta.trend as ta_trend
+            import ta.volatility as ta_volatility
+            import ta.volume as ta_volume
 
-        # Map history length for alignment
-        req_hist = yf.Ticker(symbol).history(period=period, interval=interval)
-        req_len = len(req_hist) if not req_hist.empty else len(df)
+            ema9 = ta_trend.ema_indicator(df["Close"], window=9)
+            ema20 = ta_trend.ema_indicator(df["Close"], window=20)
+            ema50 = ta_trend.ema_indicator(df["Close"], window=50)
+            ema200 = ta_trend.ema_indicator(df["Close"], window=200) if len(df) >= 200 else pd.Series(index=df.index, dtype='float64')
+            rsi = ta_momentum.rsi(df["Close"], window=14)
+
+            macd_obj = ta_trend.MACD(df["Close"])
+            macd = pd.DataFrame({"MACD": macd_obj.macd(), "HIST": macd_obj.macd_diff(), "SIGNAL": macd_obj.macd_signal()})
+
+            bb_obj = ta_volatility.BollingerBands(df["Close"])
+            bb = pd.DataFrame({"L": bb_obj.bollinger_lband(), "M": bb_obj.bollinger_mavg(), "U": bb_obj.bollinger_hband()})
+
+            atr = ta_volatility.average_true_range(df["High"], df["Low"], df["Close"], window=14)
+
+            adx_obj = ta_trend.ADXIndicator(df["High"], df["Low"], df["Close"], window=14)
+            adx = pd.DataFrame({"ADX": adx_obj.adx(), "DMP": adx_obj.adx_pos(), "DMN": adx_obj.adx_neg()})
+
+            cmf = ta_volume.chaikin_money_flow(df["High"], df["Low"], df["Close"], df["Volume"], window=20)
+            cci = ta_trend.cci(df["High"], df["Low"], df["Close"], window=20)
+            willr = ta_momentum.williams_r(df["High"], df["Low"], df["Close"], lbp=14)
+            ichimoku = None
+
+        # Map history length for alignment without making another network request
+        req_len = min(len(df), 100) if range == "3M" else len(df)
         
         result = []
         indices = df.index[-req_len:]
