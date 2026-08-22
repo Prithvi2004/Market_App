@@ -210,7 +210,7 @@ def receive_client_log(payload: ClientLogPayload):
 @app.get("/api/version")
 def get_app_version():
     return {
-        "latest_version": "1.0.1",
+        "latest_version": "1.0.0",
         "min_required_version": "1.0.0",
         "update_url": "https://expo.dev/accounts/prithvi0591/projects/marketpulse-mobile/builds",
         "release_notes": "Added live Grafana telemetry, 13 Deep Analysis sub-tabs, and production failover fixes.",
