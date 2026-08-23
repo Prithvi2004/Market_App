@@ -1,0 +1,35 @@
+name: EAS Auto-Deploy CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-mobile-ota:
+    name: Build & Publish Expo Mobile Updates
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: market-app/mobile/package-lock.json
+
+      - name: 🚀 Setup Expo & EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install Mobile Dependencies
+        working-directory: market-app/mobile
+        run: npm ci
+
+      - name: 📡 Publish OTA Update to Preview Branch
+        working-directory: market-app/mobile
+        run: eas update --branch preview --non-interactive
