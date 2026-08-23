@@ -6,7 +6,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
@@ -60,10 +60,10 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  // Vercel-like Automatic OTA Update & Reload Effect
+  // Automatic OTA Update & Reload Effect (Native iOS/Android only)
   useEffect(() => {
     async function checkForOTAUpdates() {
-      if (__DEV__) return;
+      if (__DEV__ || Platform.OS === 'web') return;
       try {
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable) {

@@ -4,7 +4,7 @@
  * Automatically posts runtime metadata logs to backend /api/client-log.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import { API_BASE_URL } from '../../api/client';
@@ -12,12 +12,12 @@ import { colors } from '../../theme/colors';
 
 export function DiagnosticsOverlay() {
   const [expanded, setExpanded] = useState(false);
-  const [meta, setMeta] = useState({
+  const [meta] = useState({
     version: Constants.expoConfig?.version ?? '1.0.0',
-    runtimeVersion: String(Updates.runtimeVersion ?? '1.0.0'),
-    channel: Updates.channel ?? 'none',
-    updateId: Updates.updateId ?? 'embedded',
-    isEmbedded: Updates.isEmbeddedLaunch,
+    runtimeVersion: Platform.OS === 'web' ? 'web-1.1.0' : String(Updates.runtimeVersion ?? '1.0.0'),
+    channel: Platform.OS === 'web' ? 'web-vercel' : (Updates.channel ?? 'none'),
+    updateId: Platform.OS === 'web' ? 'vercel-pwa' : (Updates.updateId ?? 'embedded'),
+    isEmbedded: Platform.OS === 'web' ? false : Updates.isEmbeddedLaunch,
     apiUrl: API_BASE_URL,
   });
 

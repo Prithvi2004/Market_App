@@ -15,6 +15,7 @@ import {
   Linking,
   StyleSheet,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
@@ -59,7 +60,7 @@ export function UpdateModal() {
     didCheck.current = true;
 
     async function autoCheckOta() {
-      if (__DEV__) {
+      if (__DEV__ || Platform.OS === 'web') {
         setPhase('no-ota');
         return;
       }
