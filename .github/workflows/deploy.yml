@@ -34,4 +34,4 @@ jobs:
         working-directory: market-app/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas update --branch preview --non-interactive
+        run: eas update --branch preview --message "Automated preview update from GitHub Actions" --non-interactive
