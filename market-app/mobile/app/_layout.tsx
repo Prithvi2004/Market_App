@@ -22,6 +22,7 @@ import { DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import { useLivePricesWS } from '../src/hooks/useWebSocket';
 import { ToastContainer } from '../src/components/ui/Toast';
 import { UpdateModal } from '../src/components/ui/UpdateModal';
+import 'expo-insights';
 import { colors } from '../src/theme/colors';
 
 SplashScreen.preventAutoHideAsync();

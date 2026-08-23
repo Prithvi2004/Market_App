@@ -42,8 +42,7 @@
           "imageWidth": 120
         }
       ],
-      "expo-secure-store",
-      "expo-insights"
+      "expo-secure-store"
     ],
     "extra": {
       "router": {},
