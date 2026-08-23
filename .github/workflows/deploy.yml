@@ -32,4 +32,4 @@ jobs:
 
       - name: 📡 Publish OTA Update to Preview Branch
         working-directory: market-app/mobile
-        run: eas update --branch preview --non-interactive
+        run: npx eas update --branch preview --non-interactive
