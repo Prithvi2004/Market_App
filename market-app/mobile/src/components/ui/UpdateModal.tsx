@@ -1,8 +1,8 @@
 /**
- * UpdateModal — Automatic In-App Update Notification & One-Tap OTA Bundle Installer.
+ * UpdateModal — Automatic In-App Update Notification & Direct In-App OTA Installer.
  *
- * Checks both EAS OTA Updates (`expo-updates`) and `/api/version` on launch.
- * Allows users to fetch & apply the latest update in-app without reinstalling the APK.
+ * Automatically fetches the new update over-the-air via `expo-updates` and reloads
+ * the app instantly without redirecting to a browser or needing a new APK install.
  */
 import React, { useEffect, useState } from 'react';
 import {
@@ -33,8 +33,8 @@ interface VersionResponse {
 export function UpdateModal() {
   const currentVersion = Constants.expoConfig?.version ?? '1.0.0';
 
-  const [isOtaAvailable, setIsOtaAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   const { data: versionData } = useQuery<VersionResponse>({
@@ -43,42 +43,45 @@ export function UpdateModal() {
     staleTime: 60_000,
   });
 
-  // Check for Expo OTA Updates silently on mount
-  useEffect(() => {
-    async function checkOtaUpdate() {
-      try {
-        if (__DEV__) return;
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          setIsOtaAvailable(true);
-        }
-      } catch (error) {
-        // Fallback gracefully if not in release build
-      }
-    }
-    checkOtaUpdate();
-  }, []);
-
-  const handleOtaUpdate = async () => {
-    try {
-      setIsUpdating(true);
-      await Updates.fetchUpdateAsync();
-      await Updates.reloadAsync();
-    } catch (e) {
-      setIsUpdating(false);
-      if (versionData?.update_url) {
-        Linking.openURL(versionData.update_url);
-      }
-    }
-  };
-
   if (dismissed) return null;
 
-  const hasNewVersion = isVersionGreater(versionData?.latest_version || '1.0.0', currentVersion) || isOtaAvailable;
+  const hasNewVersion = isVersionGreater(versionData?.latest_version || '1.0.0', currentVersion);
 
   if (!hasNewVersion) return null;
 
   const isForceUpdate = versionData?.force_update;
+
+  const handleApplyUpdate = async () => {
+    setIsUpdating(true);
+    setUpdateStatus('Checking for in-app update...');
+
+    try {
+      if (!__DEV__) {
+        setUpdateStatus('Downloading update...');
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          setUpdateStatus('Applying update & restarting...');
+          await Updates.reloadAsync();
+          return;
+        }
+      }
+      // If no OTA or in dev mode / failed, fallback to link
+      if (versionData?.update_url) {
+        setUpdateStatus('Opening download page...');
+        await Linking.openURL(versionData.update_url);
+      }
+    } catch (error) {
+      console.warn('In-app update error:', error);
+      // If OTA fetch fails, open update URL as fallback
+      if (versionData?.update_url) {
+        await Linking.openURL(versionData.update_url);
+      }
+    } finally {
+      setIsUpdating(false);
+      setUpdateStatus(null);
+    }
+  };
 
   return (
     <Modal transparent animationType="fade" visible={hasNewVersion && !dismissed}>
@@ -88,14 +91,10 @@ export function UpdateModal() {
             <Text style={styles.iconText}>🚀</Text>
           </View>
 
-          <Text style={styles.title}>
-            {isOtaAvailable ? 'New Update Ready!' : 'New Version Available!'}
-          </Text>
+          <Text style={styles.title}>Update Available!</Text>
 
           <Text style={styles.subtitle}>
-            {isOtaAvailable
-              ? 'A new in-app update is ready to install instantly.'
-              : `Version ${versionData?.latest_version} is available (Current: v${currentVersion}).`}
+            New version {versionData?.latest_version} is available. Tap below to update in-app.
           </Text>
 
           {versionData?.release_notes ? (
@@ -103,6 +102,10 @@ export function UpdateModal() {
               <Text style={styles.notesTitle}>What's New:</Text>
               <Text style={styles.notesText}>{versionData.release_notes}</Text>
             </View>
+          ) : null}
+
+          {updateStatus ? (
+            <Text style={styles.statusText}>{updateStatus}</Text>
           ) : null}
 
           {/* Action Buttons */}
@@ -120,16 +123,14 @@ export function UpdateModal() {
 
             <TouchableOpacity
               style={styles.updateBtn}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               disabled={isUpdating}
-              onPress={isOtaAvailable ? handleOtaUpdate : () => Linking.openURL(versionData?.update_url || '')}
+              onPress={handleApplyUpdate}
             >
               {isUpdating ? (
                 <ActivityIndicator color="#000000" size="small" />
               ) : (
-                <Text style={styles.updateText}>
-                  {isOtaAvailable ? 'Update In-App Now' : 'Download Update'}
-                </Text>
+                <Text style={styles.updateText}>Update In-App</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -218,6 +219,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.sans,
     color: colors.textSecondary,
     lineHeight: 16,
+  },
+  statusText: {
+    fontSize: 11,
+    fontFamily: typography.sansBold,
+    color: colors.accent,
+    textAlign: 'center',
   },
   btnRow: {
     flexDirection: 'row',
