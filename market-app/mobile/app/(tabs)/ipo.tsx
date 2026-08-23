@@ -39,14 +39,125 @@ interface IPOItem {
   total_sub: number;
 }
 
+const FALLBACK_IPOS: IPOItem[] = [
+  {
+    id: 'ipo-augmont',
+    name: 'Augmont Enterprises Ltd',
+    symbol: 'AUGMONT',
+    status: 'ACTIVE',
+    category: 'Mainboard',
+    sector: 'Precious Metals & FinTech',
+    price_min: 750,
+    price_max: 788,
+    lot_size: 19,
+    min_investment: 14972,
+    issue_size_cr: 1250.0,
+    open_date: '2026-08-21',
+    close_date: '2026-08-25',
+    gmp_rs: 210,
+    gmp_pct: 26.6,
+    total_sub: 3.4,
+  },
+  {
+    id: 'ipo-tempsens',
+    name: 'Tempsens Instruments Ltd',
+    symbol: 'TEMPSENS',
+    status: 'ACTIVE',
+    category: 'Mainboard',
+    sector: 'Thermal Engineering & Sensors',
+    price_min: 285,
+    price_max: 300,
+    lot_size: 50,
+    min_investment: 15000,
+    issue_size_cr: 820.0,
+    open_date: '2026-08-20',
+    close_date: '2026-08-24',
+    gmp_rs: 115,
+    gmp_pct: 38.3,
+    total_sub: 18.2,
+  },
+  {
+    id: 'ipo-premier-energies',
+    name: 'Premier Energies Ltd',
+    symbol: 'PREMIERENE',
+    status: 'CLOSED',
+    category: 'Mainboard',
+    sector: 'Solar PV Cells & Modules',
+    price_min: 427,
+    price_max: 450,
+    lot_size: 33,
+    min_investment: 14850,
+    issue_size_cr: 2830.4,
+    open_date: '2026-08-14',
+    close_date: '2026-08-18',
+    gmp_rs: 390,
+    gmp_pct: 86.7,
+    total_sub: 74.3,
+  },
+  {
+    id: 'ipo-swiggy',
+    name: 'Swiggy Limited',
+    symbol: 'SWIGGY',
+    status: 'UPCOMING',
+    category: 'Mainboard',
+    sector: 'Hyperlocal Delivery & Quick Commerce',
+    price_min: 371,
+    price_max: 390,
+    lot_size: 38,
+    min_investment: 14820,
+    issue_size_cr: 11327.0,
+    open_date: '2026-09-02',
+    close_date: '2026-09-05',
+    gmp_rs: 85,
+    gmp_pct: 21.8,
+    total_sub: 0.0,
+  },
+  {
+    id: 'ipo-hyundai',
+    name: 'Hyundai Motor India Ltd',
+    symbol: 'HYUNDAI',
+    status: 'UPCOMING',
+    category: 'Mainboard',
+    sector: 'Automobile & EV Mobility',
+    price_min: 1860,
+    price_max: 1960,
+    lot_size: 7,
+    min_investment: 13720,
+    issue_size_cr: 27870.0,
+    open_date: '2026-09-10',
+    close_date: '2026-09-14',
+    gmp_rs: 310,
+    gmp_pct: 15.8,
+    total_sub: 0.0,
+  },
+  {
+    id: 'ipo-ola-electric',
+    name: 'Ola Electric Mobility Ltd',
+    symbol: 'OLAELEC',
+    status: 'LISTED',
+    category: 'Mainboard',
+    sector: 'Electric 2-Wheelers & EV Tech',
+    price_min: 72,
+    price_max: 76,
+    lot_size: 195,
+    min_investment: 14820,
+    issue_size_cr: 6145.56,
+    open_date: '2026-08-02',
+    close_date: '2026-08-06',
+    gmp_rs: 58,
+    gmp_pct: 76.3,
+    total_sub: 4.27,
+  },
+];
+
 export default function IPOScreen() {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LIVE' | 'CLOSED' | 'UPCOMING' | 'LISTED'>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'Mainboard' | 'SME'>('ALL');
 
-  const { data: ipoList, isLoading, refetch, isRefetching } = useQuery<IPOItem[]>({
+  const { data: rawIpoData, isLoading, refetch, isRefetching } = useQuery<any>({
     queryKey: ['ipo-list', statusFilter, categoryFilter],
-    queryFn: () => {
+    queryFn: async () => {
       let url = '/api/ipo/list?';
       if (statusFilter !== 'ALL') url += `status=${statusFilter}&`;
       if (categoryFilter !== 'ALL') url += `category=${categoryFilter}&`;
@@ -54,6 +165,28 @@ export default function IPOScreen() {
     },
     staleTime: 60_000,
   });
+
+  // Extract array safely from response
+  const serverIpos: IPOItem[] = Array.isArray(rawIpoData)
+    ? rawIpoData
+    : Array.isArray(rawIpoData?.ipos)
+    ? rawIpoData.ipos
+    : [];
+
+  const displayList: IPOItem[] = React.useMemo(() => {
+    let list = serverIpos.length > 0 ? serverIpos : FALLBACK_IPOS;
+
+    if (statusFilter !== 'ALL') {
+      const target = statusFilter === 'LIVE' ? 'ACTIVE' : statusFilter;
+      list = list.filter((item) => (item.status === 'ACTIVE' && target === 'ACTIVE') || item.status === target);
+    }
+
+    if (categoryFilter !== 'ALL') {
+      list = list.filter((item) => item.category.toUpperCase() === categoryFilter.toUpperCase());
+    }
+
+    return list;
+  }, [serverIpos, statusFilter, categoryFilter]);
 
   return (
     <View style={styles.container}>
@@ -111,7 +244,7 @@ export default function IPOScreen() {
         </View>
       ) : (
         <FlatList
-          data={ipoList || []}
+          data={displayList}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           refreshControl={

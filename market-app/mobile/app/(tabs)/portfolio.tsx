@@ -24,13 +24,34 @@ import { spacing, radius } from '../../src/theme/spacing';
 import { formatINR, formatPct, signColor } from '../../src/utils/formatters';
 import type { PortfolioResult, HoldingResult } from '../../src/types/portfolio';
 
+import { useAuthStore } from '../../src/store/useAuthStore';
+
 export default function PortfolioScreen() {
   const insets = useSafeAreaInsets();
+  const { user, signOut } = useAuthStore();
   const { holdings, addHolding, removeHolding } = usePortfolioStore();
   const [addVisible, setAddVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PortfolioResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Disconnect Terminal',
+      'Are you sure you want to sign out and return to the 3D gateway?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+            router.replace('/login');
+          },
+        },
+      ]
+    );
+  };
 
   const fetchValues = useCallback(async () => {
     if (!holdings.length) return;
@@ -74,6 +95,40 @@ export default function PortfolioScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Trader Clearance & Profile Status Banner */}
+      <View style={styles.traderBar}>
+        <View style={styles.traderInfo}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarLetter}>
+              {user?.displayName ? user.displayName.charAt(0).toUpperCase() : '⚡'}
+            </Text>
+          </View>
+          <View>
+            <View style={styles.traderBadgeRow}>
+              <Text style={styles.traderName} numberOfLines={1}>
+                {user?.displayName || 'Institutional Trader'}
+              </Text>
+              <View style={styles.clearanceTag}>
+                <Text style={styles.clearanceTagText}>
+                  {user?.isGuest ? 'DEMO ALPHA' : 'VERIFIED ID'}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.traderEmail} numberOfLines={1}>
+              {user?.email || 'authenticated'}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={handleSignOut}
+          style={styles.signOutBtn}
+        >
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Summary banner */}
       {holdings.length > 0 && (
         <View style={styles.summary}>
@@ -194,6 +249,81 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.ink,
+  },
+  traderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: 'rgba(212, 150, 58, 0.06)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(212, 150, 58, 0.18)',
+  },
+  traderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  avatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarLetter: {
+    fontFamily: typography.sansBold,
+    fontSize: 15,
+    color: colors.accentLight,
+  },
+  traderBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  traderName: {
+    fontFamily: typography.sansBold,
+    fontSize: 13,
+    color: colors.textPrimary,
+    maxWidth: 140,
+  },
+  clearanceTag: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderWidth: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  clearanceTagText: {
+    fontFamily: typography.monoMedium,
+    fontSize: 8,
+    color: colors.bull,
+    letterSpacing: 0.5,
+  },
+  traderEmail: {
+    fontFamily: typography.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    maxWidth: 180,
+  },
+  signOutBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(244, 63, 94, 0.25)',
+  },
+  signOutText: {
+    fontFamily: typography.sansMedium,
+    fontSize: 11,
+    color: colors.bear,
   },
   summary: {
     flexDirection: 'row',

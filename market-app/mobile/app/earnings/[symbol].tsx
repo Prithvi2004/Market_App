@@ -9,8 +9,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../../src/api/client';
@@ -58,6 +60,7 @@ interface AnalysisResponse {
 
 export default function EarningsDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { symbol } = useLocalSearchParams<{ symbol: string }>();
 
   const { data, isLoading } = useQuery<AnalysisResponse>({
@@ -81,152 +84,207 @@ export default function EarningsDetailScreen() {
   const hr = data.historical_reaction;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Header Bar */}
-      <View style={styles.headerCard}>
-        <View style={styles.titleRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.symbolTitle}>{data.symbol.replace('.NS', '')}</Text>
-            <Text style={styles.companySub}>{data.company_name}</Text>
-          </View>
-          <View style={styles.verdictBadge}>
-            <Text style={styles.verdictBadgeText}>{data.verdict}</Text>
-          </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.ink} />
+
+      {/* ── Top Navigation Bar ── */}
+      <View style={[styles.navBar, { paddingTop: Math.max(insets.top, 12) }]}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          activeOpacity={0.7}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <View style={styles.navTitleContainer}>
+          <Text style={styles.navTitle}>{data.symbol.replace('.NS', '')}</Text>
+          <Text style={styles.navSubtitle} numberOfLines={1}>{data.company_name}</Text>
         </View>
-
-        <View style={styles.ratingRow}>
-          <Text style={styles.ratingLabel}>Short-Term Profit Potential:</Text>
-          <Text style={styles.ratingValue}>{data.short_term_rating}</Text>
-        </View>
-      </View>
-
-      {/* Executive Summary */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionHeader}>📊 Senior Analyst Verdict</Text>
-        <Text style={styles.summaryText}>{data.executive_summary}</Text>
-      </View>
-
-      {/* Financial Performance Matrix */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionHeader}>📈 Financial Surprise Matrix</Text>
-        <View style={styles.finGrid}>
-          <View style={styles.finCell}>
-            <Text style={styles.finLabel}>NET PROFIT (PAT)</Text>
-            <Text style={styles.finValue}>₹{fg.pat_cr.toLocaleString()} Cr</Text>
-            <Text style={[styles.finSub, { color: fg.pat_yoy_pct >= 0 ? colors.positive : colors.negative }]}>
-              {fg.pat_yoy_pct >= 0 ? `+${fg.pat_yoy_pct}% YoY` : `${fg.pat_yoy_pct}% YoY`}
-            </Text>
-          </View>
-
-          <View style={styles.finCell}>
-            <Text style={styles.finLabel}>REVENUE</Text>
-            <Text style={styles.finValue}>₹{fg.revenue_cr.toLocaleString()} Cr</Text>
-            <Text style={[styles.finSub, { color: fg.revenue_yoy_pct >= 0 ? colors.positive : colors.negative }]}>
-              {fg.revenue_yoy_pct >= 0 ? `+${fg.revenue_yoy_pct}% YoY` : `${fg.revenue_yoy_pct}% YoY`}
-            </Text>
-          </View>
-
-          <View style={styles.finCell}>
-            <Text style={styles.finLabel}>EBITDA MARGIN</Text>
-            <Text style={[styles.finValue, { color: colors.accent }]}>{fg.ebitda_margin_pct}%</Text>
-            <Text style={styles.finSubMuted}>Operating Leverage</Text>
-          </View>
-        </View>
-        <Text style={styles.surpriseVerdict}>{fg.surprise_verdict}</Text>
-      </View>
-
-      {/* SHORT-TERM TRADER PROFIT PLAYBOOK (GOLD/EMERALD STANDOUT CARD) */}
-      <View style={styles.playbookCard}>
-        <View style={styles.playbookHeader}>
-          <Ionicons name="flash" size={18} color="#000000" />
-          <Text style={styles.playbookTitle}>SHORT-TERM TRADER PLAYBOOK</Text>
-          <View style={styles.actionTag}>
-            <Text style={styles.actionTagText}>{pb.trading_action}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.entryStrategyText}>{pb.entry_strategy}</Text>
-
-        <View style={styles.targetsGrid}>
-          <View style={styles.targetBox}>
-            <Text style={styles.targetLabel}>IDEAL ENTRY ZONE</Text>
-            <Text style={styles.targetValueGold}>{pb.ideal_entry_zone}</Text>
-          </View>
-
-          <View style={styles.targetBox}>
-            <Text style={styles.targetLabel}>STOP-LOSS</Text>
-            <Text style={styles.targetValueRed}>{pb.stop_loss}</Text>
-          </View>
-
-          <View style={styles.targetBox}>
-            <Text style={styles.targetLabel}>TARGET 1 (0-3 DAYS)</Text>
-            <Text style={styles.targetValueGreen}>{pb.target_1_immediate}</Text>
-          </View>
-
-          <View style={styles.targetBox}>
-            <Text style={styles.targetLabel}>TARGET 2 (1-4 WEEKS)</Text>
-            <Text style={styles.targetValueGreen}>{pb.target_2_swing}</Text>
-          </View>
-        </View>
-
-        <View style={styles.playbookMetaRow}>
-          <View style={styles.metaPill}>
-            <Text style={styles.metaPillLabel}>Risk : Reward</Text>
-            <Text style={styles.metaPillVal}>{pb.risk_reward_ratio}</Text>
-          </View>
-          <View style={styles.metaPill}>
-            <Text style={styles.metaPillLabel}>Holding Window</Text>
-            <Text style={styles.metaPillVal}>{pb.optimal_holding_period}</Text>
-          </View>
+        <View style={styles.verdictBadge}>
+          <Text style={styles.verdictBadgeText}>{data.verdict}</Text>
         </View>
       </View>
 
-      {/* Historical Stock Reaction Scorecard */}
-      <View style={styles.sectionCard}>
-        <View style={styles.scorecardHeader}>
-          <Text style={styles.sectionHeader}>⏳ Post-Earnings Reaction History</Text>
-          <Text style={styles.winRateText}>{hr.win_rate_post_earnings}</Text>
-        </View>
-
-        <View style={styles.reactionList}>
-          <View style={styles.reactionRow}>
-            <Text style={styles.reactionPeriod}>Q4 FY25 Result</Text>
-            <Text style={styles.reactionVal}>{hr.q4_fy25_post_move}</Text>
-          </View>
-          <View style={styles.reactionRow}>
-            <Text style={styles.reactionPeriod}>Q3 FY25 Result</Text>
-            <Text style={styles.reactionVal}>{hr.q3_fy25_post_move}</Text>
-          </View>
-          <View style={styles.reactionRow}>
-            <Text style={styles.reactionPeriod}>Q2 FY25 Result</Text>
-            <Text style={styles.reactionVal}>{hr.q2_fy25_post_move}</Text>
-          </View>
-          <View style={styles.reactionRow}>
-            <Text style={styles.reactionPeriod}>Q1 FY25 Result</Text>
-            <Text style={styles.reactionVal}>{hr.q1_fy25_post_move}</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Rating Overview Banner ── */}
+        <View style={styles.overviewCard}>
+          <View style={styles.overviewRow}>
+            <View>
+              <Text style={styles.overviewLabel}>SHORT-TERM TRADE POTENTIAL</Text>
+              <Text style={styles.overviewRating}>{data.short_term_rating}</Text>
+            </View>
+            <View style={styles.actionPill}>
+              <Text style={styles.actionPillText}>{pb.trading_action}</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Catalysts & Red Flags */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionHeader}>🚀 Growth Catalysts</Text>
-        {data.catalysts.map((cat, idx) => (
-          <View key={idx} style={styles.bulletRow}>
-            <Ionicons name="checkmark-circle" size={14} color={colors.positive} />
-            <Text style={styles.bulletText}>{cat}</Text>
+        {/* ── Executive Verdict ── */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Ionicons name="document-text-outline" size={16} color={colors.accent} />
+            <Text style={styles.sectionTitle}>Senior Analyst Verdict</Text>
           </View>
-        ))}
+          <Text style={styles.summaryText}>{data.executive_summary}</Text>
+        </View>
 
-        <Text style={[styles.sectionHeader, { marginTop: spacing.md }]}>⚠️ Risk Audit</Text>
-        {data.red_flags.map((rf, idx) => (
-          <View key={idx} style={styles.bulletRow}>
-            <Ionicons name="alert-circle" size={14} color={colors.negative} />
-            <Text style={styles.bulletText}>{rf}</Text>
+        {/* ── Financial Performance Matrix ── */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Ionicons name="bar-chart-outline" size={16} color={colors.accent} />
+            <Text style={styles.sectionTitle}>Financial Surprise Matrix</Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+
+          <View style={styles.finGrid}>
+            <View style={styles.finCell}>
+              <Text style={styles.finLabel}>NET PROFIT (PAT)</Text>
+              <Text style={styles.finValue}>₹{fg.pat_cr.toLocaleString()} Cr</Text>
+              <Text
+                style={[
+                  styles.finSub,
+                  { color: fg.pat_yoy_pct >= 0 ? colors.bull : colors.bear },
+                ]}
+              >
+                {fg.pat_yoy_pct >= 0 ? `+${fg.pat_yoy_pct}% YoY` : `${fg.pat_yoy_pct}% YoY`}
+              </Text>
+            </View>
+
+            <View style={styles.finCellDivider} />
+
+            <View style={styles.finCell}>
+              <Text style={styles.finLabel}>REVENUE</Text>
+              <Text style={styles.finValue}>₹{fg.revenue_cr.toLocaleString()} Cr</Text>
+              <Text
+                style={[
+                  styles.finSub,
+                  { color: fg.revenue_yoy_pct >= 0 ? colors.bull : colors.bear },
+                ]}
+              >
+                {fg.revenue_yoy_pct >= 0 ? `+${fg.revenue_yoy_pct}% YoY` : `${fg.revenue_yoy_pct}% YoY`}
+              </Text>
+            </View>
+
+            <View style={styles.finCellDivider} />
+
+            <View style={styles.finCell}>
+              <Text style={styles.finLabel}>EBITDA MARGIN</Text>
+              <Text style={[styles.finValue, { color: colors.accent }]}>
+                {fg.ebitda_margin_pct}%
+              </Text>
+              <Text style={styles.finSubMuted}>Operating Margin</Text>
+            </View>
+          </View>
+
+          <View style={styles.surpriseBanner}>
+            <Ionicons name="checkmark-circle-outline" size={14} color={colors.accent} />
+            <Text style={styles.surpriseVerdict}>{fg.surprise_verdict}</Text>
+          </View>
+        </View>
+
+        {/* ── Short-Term Trader Profit Playbook ── */}
+        <View style={styles.playbookCard}>
+          <View style={styles.playbookHeader}>
+            <View style={styles.playbookTitleRow}>
+              <Ionicons name="flash" size={16} color={colors.accent} />
+              <Text style={styles.playbookTitle}>SHORT-TERM TRADER PLAYBOOK</Text>
+            </View>
+            <View style={styles.holdingPill}>
+              <Text style={styles.holdingPillText}>{pb.optimal_holding_period}</Text>
+            </View>
+          </View>
+
+          <View style={styles.strategyBox}>
+            <Text style={styles.strategyText}>{pb.entry_strategy}</Text>
+          </View>
+
+          {/* 2x2 Target Matrix */}
+          <View style={styles.targetsGrid}>
+            <View style={styles.targetBox}>
+              <Text style={styles.targetLabel}>IDEAL ENTRY ZONE</Text>
+              <Text style={styles.targetValueGold}>{pb.ideal_entry_zone}</Text>
+            </View>
+
+            <View style={styles.targetBox}>
+              <Text style={styles.targetLabel}>STOP-LOSS</Text>
+              <Text style={styles.targetValueRed}>{pb.stop_loss}</Text>
+            </View>
+
+            <View style={styles.targetBox}>
+              <Text style={styles.targetLabel}>TARGET 1 (0-3 DAYS)</Text>
+              <Text style={styles.targetValueGreen}>{pb.target_1_immediate}</Text>
+            </View>
+
+            <View style={styles.targetBox}>
+              <Text style={styles.targetLabel}>TARGET 2 (1-4 WEEKS)</Text>
+              <Text style={styles.targetValueGreen}>{pb.target_2_swing}</Text>
+            </View>
+          </View>
+
+          <View style={styles.riskRewardRow}>
+            <Text style={styles.riskRewardLabel}>Risk : Reward Ratio</Text>
+            <Text style={styles.riskRewardVal}>{pb.risk_reward_ratio}</Text>
+          </View>
+        </View>
+
+        {/* ── Post-Earnings Reaction History ── */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Ionicons name="time-outline" size={16} color={colors.accent} />
+            <Text style={styles.sectionTitle}>Post-Earnings Reaction History</Text>
+            <View style={styles.winRateBadge}>
+              <Text style={styles.winRateText}>{hr.win_rate_post_earnings}</Text>
+            </View>
+          </View>
+
+          <View style={styles.reactionList}>
+            {[
+              { period: 'Q4 FY25 Result', val: hr.q4_fy25_post_move },
+              { period: 'Q3 FY25 Result', val: hr.q3_fy25_post_move },
+              { period: 'Q2 FY25 Result', val: hr.q2_fy25_post_move },
+              { period: 'Q1 FY25 Result', val: hr.q1_fy25_post_move },
+            ].map((item, idx) => (
+              <View key={idx} style={styles.reactionRow}>
+                <Text style={styles.reactionPeriod}>{item.period}</Text>
+                <Text style={styles.reactionVal}>{item.val}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ── Growth Catalysts & Risk Audit ── */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Ionicons name="trending-up-outline" size={16} color={colors.bull} />
+            <Text style={styles.sectionTitle}>Growth Catalysts</Text>
+          </View>
+          <View style={styles.bulletList}>
+            {data.catalysts.map((cat, idx) => (
+              <View key={idx} style={styles.bulletRow}>
+                <Ionicons name="checkmark-circle" size={14} color={colors.bull} style={{ marginTop: 2 }} />
+                <Text style={styles.bulletText}>{cat}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={[styles.sectionHeaderRow, { marginTop: spacing.md }]}>
+            <Ionicons name="warning-outline" size={16} color={colors.bear} />
+            <Text style={styles.sectionTitle}>Risk Audit & Caveats</Text>
+          </View>
+          <View style={styles.bulletList}>
+            {data.red_flags.map((rf, idx) => (
+              <View key={idx} style={styles.bulletRow}>
+                <Ionicons name="alert-circle" size={14} color={colors.bear} style={{ marginTop: 2 }} />
+                <Text style={styles.bulletText}>{rf}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -235,10 +293,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.ink,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
     padding: spacing.md,
     gap: spacing.md,
-    paddingBottom: spacing.xl,
   },
   loadingState: {
     flex: 1,
@@ -252,97 +312,143 @@ const styles = StyleSheet.create({
     fontFamily: typography.sans,
     color: colors.textMuted,
   },
-  headerCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    gap: spacing.xs,
-  },
-  titleRow: {
+
+  // Navigation Bar
+  navBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xs + 2,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
-  symbolTitle: {
-    fontSize: 22,
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  navTitleContainer: {
+    flex: 1,
+  },
+  navTitle: {
+    fontSize: 16,
     fontFamily: typography.sansBold,
     color: colors.textPrimary,
   },
-  companySub: {
-    fontSize: 12,
-    fontFamily: typography.sans,
-    color: colors.textMuted,
-  },
-  verdictBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.md,
-    backgroundColor: 'rgba(16,185,129,0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(16,185,129,0.5)',
-  },
-  verdictBadgeText: {
-    fontSize: 12,
-    fontFamily: typography.sansBold,
-    color: colors.positive,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-    paddingTop: spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-  },
-  ratingLabel: {
+  navSubtitle: {
     fontSize: 11,
     fontFamily: typography.sans,
     color: colors.textMuted,
+    marginTop: 1,
   },
-  ratingValue: {
-    fontSize: 12,
+  verdictBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+  },
+  verdictBadgeText: {
+    fontSize: 10,
     fontFamily: typography.sansBold,
-    color: colors.accent,
+    color: colors.bull,
   },
-  sectionCard: {
-    backgroundColor: colors.surface,
+
+  // Overview Banner
+  overviewCard: {
+    backgroundColor: '#151822',
     borderRadius: radius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  overviewRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  overviewLabel: {
+    fontSize: 9,
+    fontFamily: typography.monoMedium,
+    color: colors.textDim,
+    letterSpacing: 0.5,
+  },
+  overviewRating: {
+    fontSize: 13,
+    fontFamily: typography.sansBold,
+    color: colors.textPrimary,
+    marginTop: 2,
+  },
+  actionPill: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.sm,
+  },
+  actionPillText: {
+    fontSize: 11,
+    fontFamily: typography.sansBold,
+    color: '#0b0b09',
+  },
+
+  // Section Cards
+  sectionCard: {
+    backgroundColor: '#151822',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
     gap: spacing.sm,
   },
-  sectionHeader: {
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionTitle: {
+    flex: 1,
     fontSize: 13,
     fontFamily: typography.sansBold,
     color: colors.textPrimary,
   },
   summaryText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: typography.sans,
     color: colors.textSecondary,
     lineHeight: 18,
   },
+
+  // Financial Grid
   finGrid: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
   },
   finCell: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: radius.md,
-    padding: spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
   },
+  finCellDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
   finLabel: {
-    fontSize: 8,
-    fontFamily: typography.sansBold,
-    color: colors.textMuted,
+    fontSize: 8.5,
+    fontFamily: typography.monoMedium,
+    color: colors.textDim,
+    textTransform: 'uppercase',
   },
   finValue: {
     fontSize: 13,
@@ -352,54 +458,83 @@ const styles = StyleSheet.create({
   },
   finSub: {
     fontSize: 10,
-    fontFamily: typography.sansBold,
+    fontFamily: typography.monoMedium,
     marginTop: 2,
   },
   finSubMuted: {
     fontSize: 9,
     fontFamily: typography.sans,
-    color: colors.textMuted,
+    color: colors.textDim,
     marginTop: 2,
   },
+  surpriseBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(212, 150, 58, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 150, 58, 0.2)',
+  },
   surpriseVerdict: {
+    flex: 1,
     fontSize: 11,
     fontFamily: typography.sansMedium,
     color: colors.accent,
-    marginTop: 2,
   },
+
+  // Playbook Standout Card
   playbookCard: {
-    backgroundColor: '#161922',
+    backgroundColor: '#181d29',
     borderRadius: radius.xl,
     padding: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.accent,
+    borderWidth: 1.2,
+    borderColor: 'rgba(212, 150, 58, 0.45)',
     gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   playbookHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'space-between',
+  },
+  playbookTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   playbookTitle: {
-    flex: 1,
     fontSize: 12,
     fontFamily: typography.sansBold,
     color: colors.accent,
     letterSpacing: 0.5,
   },
-  actionTag: {
-    backgroundColor: colors.accent,
+  holdingPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.sm,
   },
-  actionTagText: {
-    fontSize: 10,
-    fontFamily: typography.sansBold,
-    color: '#000000',
+  holdingPillText: {
+    fontSize: 9.5,
+    fontFamily: typography.monoMedium,
+    color: colors.textMuted,
   },
-  entryStrategyText: {
-    fontSize: 11,
+  strategyBox: {
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    borderRadius: radius.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  strategyText: {
+    fontSize: 11.5,
     fontFamily: typography.sans,
     color: colors.textSecondary,
     lineHeight: 16,
@@ -407,104 +542,110 @@ const styles = StyleSheet.create({
   targetsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginVertical: 2,
+    gap: 8,
   },
   targetBox: {
-    width: '48%',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    width: '48.5%',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     borderRadius: radius.md,
     padding: spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   targetLabel: {
-    fontSize: 9,
-    fontFamily: typography.sansBold,
-    color: colors.textMuted,
+    fontSize: 8.5,
+    fontFamily: typography.monoMedium,
+    color: colors.textDim,
   },
   targetValueGold: {
     fontSize: 13,
     fontFamily: typography.monoMedium,
     color: colors.accent,
-    marginTop: 2,
+    marginTop: 3,
   },
   targetValueGreen: {
     fontSize: 13,
     fontFamily: typography.monoMedium,
-    color: colors.positive,
-    marginTop: 2,
+    color: colors.bull,
+    marginTop: 3,
   },
   targetValueRed: {
     fontSize: 13,
     fontFamily: typography.monoMedium,
-    color: colors.negative,
-    marginTop: 2,
+    color: colors.bear,
+    marginTop: 3,
   },
-  playbookMetaRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: 2,
-  },
-  metaPill: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: radius.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  metaPillLabel: {
-    fontSize: 10,
-    fontFamily: typography.sans,
-    color: colors.textMuted,
-  },
-  metaPillVal: {
-    fontSize: 10,
-    fontFamily: typography.sansBold,
-    color: colors.textPrimary,
-  },
-  scorecardHeader: {
+  riskRewardRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  riskRewardLabel: {
+    fontSize: 10.5,
+    fontFamily: typography.sans,
+    color: colors.textMuted,
+  },
+  riskRewardVal: {
+    fontSize: 11,
+    fontFamily: typography.monoMedium,
+    color: colors.accent,
+  },
+
+  // Reaction Scorecard
+  winRateBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   winRateText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: typography.sansBold,
-    color: colors.positive,
+    color: colors.bull,
   },
   reactionList: {
-    gap: spacing.xs,
-    marginTop: 2,
+    gap: 6,
   },
   reactionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
   },
   reactionPeriod: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontFamily: typography.sans,
     color: colors.textMuted,
   },
   reactionVal: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontFamily: typography.monoMedium,
     color: colors.textPrimary,
   },
+
+  // Bullets
+  bulletList: {
+    gap: 6,
+  },
   bulletRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+    alignItems: 'flex-start',
+    gap: 8,
   },
   bulletText: {
-    fontSize: 11,
+    flex: 1,
+    fontSize: 11.5,
     fontFamily: typography.sans,
     color: colors.textSecondary,
-    flex: 1,
+    lineHeight: 16,
   },
 });

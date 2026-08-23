@@ -27,6 +27,9 @@ import { colors } from '../src/theme/colors';
 
 import * as Updates from 'expo-updates';
 
+import { useAuthStore } from '../src/store/useAuthStore';
+import { useRouter, useSegments } from 'expo-router';
+
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
@@ -41,6 +44,32 @@ const queryClient = new QueryClient({
 
 function WSProvider() {
   useLivePricesWS();
+  return null;
+}
+
+function AuthGuard() {
+  const { isAuthenticated, isInitializing, initializeAuth } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const inAuthGroup = segments[0] === 'login';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Redirect to the 3D storytelling login gateway
+      router.replace('/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Redirect into main tab terminal
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isInitializing, segments]);
+
   return null;
 }
 
@@ -88,6 +117,7 @@ export default function RootLayout() {
           <UpdateModal />
           <DiagnosticsOverlay />
           <WSProvider />
+          <AuthGuard />
           <Stack
             screenOptions={{
               headerStyle: { backgroundColor: colors.surface },
@@ -100,6 +130,7 @@ export default function RootLayout() {
               animation: 'slide_from_right',
             }}
           >
+            <Stack.Screen name="login" options={{ headerShown: false, animation: 'fade' }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
               name="stock/[symbol]"

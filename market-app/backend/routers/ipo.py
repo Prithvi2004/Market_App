@@ -1031,28 +1031,27 @@ def get_ipo_list(
     category: str | None = Query(default=None, description="Filter by type: Mainboard, SME")
 ):
     """Return all live, closed, upcoming & listed IPOs with status and category filtering."""
+    items = []
     try:
         from firestore_db import is_firestore_active, get_live_ipos_firestore
         if is_firestore_active():
             fs_ipos = get_live_ipos_firestore(status_filter=status)
             if fs_ipos:
-                if category:
+                if category and category.upper() != "ALL":
                     c_lower = category.lower()
                     fs_ipos = [i for i in fs_ipos if c_lower in i.get("category", "").lower()]
-                return {
-                    "count": len(fs_ipos),
-                    "ipos": fs_ipos
-                }
+                if fs_ipos:
+                    return fs_ipos
     except Exception:
         pass
 
-    items = VERIFIED_INDIAN_IPOS
+    items = list(VERIFIED_INDIAN_IPOS)
 
     if status and status.upper() not in ["ALL", "ALL IPOS"]:
         s = status.upper()
         if s == "LIVE":
             s = "ACTIVE"
-        items = [i for i in items if i["status"] == s]
+        items = [i for i in items if i["status"].upper() == s]
 
     if category and category.upper() != "ALL":
         items = [i for i in items if i["category"].upper() == category.upper()]

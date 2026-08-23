@@ -274,16 +274,73 @@ def get_live_ipos_firestore(status_filter: Optional[str] = None) -> List[Dict[st
     try:
         docs = _firestore_db.collection("ipo_hub").stream()
         results = []
+        target_status = status_filter.upper() if status_filter else None
+        if target_status == "LIVE":
+            target_status = "ACTIVE"
+
         for doc in docs:
             d = doc.to_dict()
-            if status_filter and status_filter.upper() != "ALL":
-                if d.get("status", "").upper() != status_filter.upper():
+            if target_status and target_status != "ALL":
+                doc_status = d.get("status", "").upper()
+                if doc_status == "LIVE":
+                    doc_status = "ACTIVE"
+                if doc_status != target_status:
                     continue
             results.append(d)
         return results
     except Exception as e:
         log.warning("Firestore get_live_ipos_firestore error: %s", e)
         return []
+
+
+# ---------------------------------------------------------------------------
+# 3.5. USER PROFILES FIRESTORE OPERATIONS ('users')
+# ---------------------------------------------------------------------------
+
+def save_user_profile_firestore(user_dict: Dict[str, Any]) -> bool:
+    """Save or update user profile in Firestore collection 'users'."""
+    if not is_firestore_active():
+        return False
+
+    try:
+        uid = user_dict.get("uid") or user_dict.get("id") or f"user_{Date.now()}"
+        doc_ref = _firestore_db.collection("users").document(uid)
+        payload = {
+            "uid": uid,
+            "email": user_dict.get("email", ""),
+            "displayName": user_dict.get("displayName", ""),
+            "photoURL": user_dict.get("photoURL", ""),
+            "isGuest": bool(user_dict.get("isGuest", False)),
+            "platform": "mobile",
+            "lastLoginAt": datetime.utcnow().isoformat(),
+            "updatedAt": datetime.utcnow().isoformat(),
+        }
+        if "createdAt" in user_dict:
+            payload["createdAt"] = user_dict["createdAt"]
+        else:
+            payload["createdAt"] = datetime.utcnow().isoformat()
+
+        doc_ref.set(payload, merge=True)
+        log.info("🔥 User profile synced to Firestore: %s (%s)", uid, user_dict.get("email"))
+        return True
+    except Exception as e:
+        log.warning("Firestore save_user_profile_firestore error: %s", e)
+        return False
+
+
+def get_user_profile_firestore(uid: str) -> Optional[Dict[str, Any]]:
+    """Retrieve user profile from Firestore collection 'users'."""
+    if not is_firestore_active():
+        return None
+
+    try:
+        doc = _firestore_db.collection("users").document(uid).get()
+        if doc.exists:
+            return doc.to_dict()
+        return None
+    except Exception as e:
+        log.warning("Firestore get_user_profile_firestore error: %s", e)
+        return None
 
 
 # ---------------------------------------------------------------------------

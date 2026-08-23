@@ -135,6 +135,7 @@ from routers import news as news_router
 from routers import portfolio as portfolio_router
 from routers import ipo as ipo_router
 from routers import earnings as earnings_router
+from routers import users as users_router
 
 app.include_router(market_router.router, prefix="/api")
 app.include_router(news_router.router, prefix="/api")
@@ -142,6 +143,7 @@ app.include_router(llm_router.router, prefix="/api")
 app.include_router(portfolio_router.router, prefix="/api")
 app.include_router(ipo_router.router, prefix="/api")
 app.include_router(earnings_router.router, prefix="/api")
+app.include_router(users_router.router, prefix="/api")
 
 origins = settings.cors_origins
 allow_all = "*" in origins or len(origins) == 0

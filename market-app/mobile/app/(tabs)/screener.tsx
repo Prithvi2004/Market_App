@@ -20,10 +20,9 @@ import { Skeleton } from '../../src/components/ui/Skeleton';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
 import { spacing, radius } from '../../src/theme/spacing';
-import { SIGNAL_DIRECTION_COLORS } from '../../src/utils/constants';
 
 const FILTER_OPTIONS = [
-  { id: 'all', label: 'All Signals' },
+  { id: 'all',     label: 'All' },
   { id: 'bullish', label: '🟢 Bullish' },
   { id: 'bearish', label: '🔴 Bearish' },
   { id: 'neutral', label: '⚪ Neutral' },
@@ -34,51 +33,53 @@ export default function ScreenerScreen() {
   const screenerFilter = useAppStore((s) => s.screenerFilter);
   const setScreenerFilter = useAppStore((s) => s.setScreenerFilter);
 
-  const { data, isLoading, refetch, dataUpdatedAt } = useScreenerAlerts();
+  const { data, isLoading, refetch } = useScreenerAlerts();
 
   const filtered = useMemo(() => {
     if (!data) return [];
     if (screenerFilter === 'all') return data;
-    return data.filter((a) =>
-      a.signals.some((s) => s.direction === screenerFilter)
-    );
+    return data.filter((a) => a.signals.some((s) => s.direction === screenerFilter));
   }, [data, screenerFilter]);
 
-  // Count by direction
   const bullCount = data?.filter((a) => a.signals.some((s) => s.direction === 'bullish')).length ?? 0;
   const bearCount = data?.filter((a) => a.signals.some((s) => s.direction === 'bearish')).length ?? 0;
 
   return (
     <View style={styles.container}>
-      {/* Header stats */}
-      <View style={styles.headerStats}>
-        <StatPill label="Alerts" value={data?.length ?? 0} color={colors.accent} />
-        <StatPill label="Bullish" value={bullCount} color={colors.bull} />
-        <StatPill label="Bearish" value={bearCount} color={colors.bear} />
+
+      {/* ── Stat pills row ── */}
+      <View style={styles.statsRow}>
+        <StatPill label="Alerts"  value={data?.length ?? 0} color={colors.accent} />
+        <StatPill label="Bullish" value={bullCount}          color={colors.bull}   />
+        <StatPill label="Bearish" value={bearCount}          color={colors.bear}   />
       </View>
 
-      {/* Standout Q-Results & Corporate Announcements Hero Card */}
+      {/* ── Q-Results shortcut card (Elevated) ── */}
       <TouchableOpacity
-        style={styles.qResultsHeroCard}
+        style={styles.qCard}
         activeOpacity={0.85}
         onPress={() => router.push('/earnings')}
       >
-        <View style={styles.qResultsCardHeader}>
-          <Text style={styles.qResultsBadge}>🔥 STANDOUT FEATURE</Text>
-          <Text style={styles.qResultsArrow}>View Terminal ➔</Text>
+        <View style={styles.qCardInner}>
+          <View style={styles.qCardIconBox}>
+            <Text style={styles.qCardIcon}>📊</Text>
+          </View>
+          <View style={styles.qCardContent}>
+            <View style={styles.qCardRow}>
+              <Text style={styles.qCardTitle}>Q-Results & Corporate Action</Text>
+              <View style={styles.qCardBadge}>
+                <Text style={styles.qCardBadgeText}>EXPLORE ➔</Text>
+              </View>
+            </View>
+            <Text style={styles.qCardSub} numberOfLines={1}>
+              Multi-source filings · PAT growth % · margins & playbooks
+            </Text>
+          </View>
         </View>
-        <Text style={styles.qResultsTitle}>📊 Q-Results & Corporate Action Hub</Text>
-        <Text style={styles.qResultsSubtitle}>
-          Multi-source verified earnings, PAT growth %, margins & short-term profit playbooks.
-        </Text>
       </TouchableOpacity>
 
-      {/* Filter pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
+      {/* ── Filter buttons (Single fixed row, constant gap, equal width) ── */}
+      <View style={styles.filterRow}>
         {FILTER_OPTIONS.map((f) => (
           <TouchableOpacity
             key={f.id}
@@ -86,14 +87,17 @@ export default function ScreenerScreen() {
             onPress={() => setScreenerFilter(f.id)}
             style={[styles.pill, screenerFilter === f.id && styles.pillActive]}
           >
-            <Text style={[styles.pillLabel, screenerFilter === f.id && styles.pillLabelActive]}>
+            <Text
+              style={[styles.pillLabel, screenerFilter === f.id && styles.pillLabelActive]}
+              numberOfLines={1}
+            >
               {f.label}
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
 
-      {/* Alert list */}
+      {/* ── Alert list ── */}
       {isLoading && !data ? (
         <View style={styles.skeletons}>
           {Array.from({ length: 5 }).map((_, i) => (
@@ -138,6 +142,7 @@ export default function ScreenerScreen() {
   );
 }
 
+// ─── StatPill ────────────────────────────────────────────────────────────────
 function StatPill({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <View style={[pillStyles.pill, { borderColor: `${color}30`, backgroundColor: `${color}10` }]}>
@@ -149,10 +154,10 @@ function StatPill({ label, value, color }: { label: string; value: number; color
 
 const pillStyles = StyleSheet.create({
   pill: {
+    flex: 1,
     borderWidth: 1,
     borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     alignItems: 'center',
   },
   value: {
@@ -165,54 +170,138 @@ const pillStyles = StyleSheet.create({
     color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginTop: 1,
   },
 });
 
+// ─── Main styles ─────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.ink,
   },
-  headerStats: {
+
+  // Stats
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: 4,
+  },
+
+  // Elevated Q-Results card
+  qCard: {
+    backgroundColor: '#181c28',
+    borderColor: 'rgba(212, 150, 58, 0.45)',
+    borderWidth: 1.2,
+    borderRadius: radius.lg,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginHorizontal: spacing.lg,
+    marginTop: 2,
+    marginBottom: 6,
+    // Elevation & shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  qCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.lg,
-    paddingBottom: spacing.sm,
-    flexWrap: 'wrap',
+    gap: 10,
   },
-  lastUpdate: {
-    fontSize: typography.size.xs,
-    fontFamily: typography.mono,
-    color: colors.textDim,
-    marginLeft: 'auto',
+  qCardIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(212, 150, 58, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 150, 58, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  qCardIcon: {
+    fontSize: 16,
+  },
+  qCardContent: {
+    flex: 1,
+  },
+  qCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  qCardTitle: {
+    fontSize: typography.size.sm,
+    fontFamily: typography.sansBold,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  qCardBadge: {
+    backgroundColor: 'rgba(212, 150, 58, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 150, 58, 0.3)',
+    marginLeft: 6,
+  },
+  qCardBadgeText: {
+    fontSize: 9,
+    fontFamily: typography.sansBold,
+    color: colors.accent,
+    letterSpacing: 0.5,
+  },
+  qCardSub: {
+    fontSize: 11,
+    fontFamily: typography.sans,
+    color: colors.textMuted,
+    lineHeight: 15,
+  },
+
+  // Filters (Fixed single row, constant gap, equal width)
   filterRow: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    flexDirection: 'row',
     gap: 6,
+    paddingHorizontal: spacing.lg,
+    paddingTop: 2,
+    paddingBottom: 6,
+    alignItems: 'center',
   },
   pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.full,
+    flex: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 2,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pillActive: {
     backgroundColor: colors.accentBg,
     borderColor: colors.accentBorder,
   },
   pillLabel: {
-    fontSize: typography.size.sm,
+    fontSize: 11,
     fontFamily: typography.sansSemiBold,
     color: colors.textMuted,
+    textAlign: 'center',
   },
   pillLabelActive: {
     color: colors.accent,
+    fontFamily: typography.sansBold,
   },
+
+  // List
   list: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: 4,
   },
   skeletons: {
     padding: spacing.lg,
@@ -221,6 +310,8 @@ const styles = StyleSheet.create({
   skeletonCard: {
     borderRadius: 14,
   },
+
+  // Empty
   empty: {
     flex: 1,
     alignItems: 'center',
@@ -243,43 +334,5 @@ const styles = StyleSheet.create({
     fontFamily: typography.sans,
     color: colors.textMuted,
     textAlign: 'center',
-  },
-  qResultsHeroCard: {
-    backgroundColor: '#161922',
-    borderColor: '#D4963A40',
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  qResultsCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  qResultsBadge: {
-    fontSize: 10,
-    fontFamily: typography.sansBold,
-    color: '#D4963A',
-    letterSpacing: 0.5,
-  },
-  qResultsArrow: {
-    fontSize: typography.size.xs,
-    fontFamily: typography.sansBold,
-    color: colors.accent,
-  },
-  qResultsTitle: {
-    fontSize: typography.size.md,
-    fontFamily: typography.sansBold,
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  qResultsSubtitle: {
-    fontSize: typography.size.xs,
-    fontFamily: typography.sans,
-    color: colors.textMuted,
-    lineHeight: 16,
   },
 });
