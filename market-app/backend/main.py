@@ -201,23 +201,23 @@ class ClientLogPayload(BaseModel):
     level: str = "INFO"
     tag: str = "MOBILE"
     message: str
-    details: str | None = None
+    details: Any = None
 
 @app.post("/api/client-logs")
 def receive_client_log(payload: ClientLogPayload):
     if payload.level == "ERROR":
         log.error("📱 [MOBILE APK ERROR] [%s] %s %s", payload.tag, payload.message, payload.details or "")
     else:
-        log.info("📱 [MOBILE APK LOG] [%s] %s", payload.tag, payload.message)
+        log.info("📱 [MOBILE DIAGNOSTICS LOG] [%s] %s -> %s", payload.tag, payload.message, payload.details or "")
     return {"status": "received"}
 
 @app.get("/api/version")
 def get_app_version():
     return {
-        "latest_version": "1.0.0",
+        "latest_version": "1.1.0",
         "min_required_version": "1.0.0",
-        "update_url": "https://expo.dev/accounts/prithvi0591/projects/marketpulse-mobile/builds",
-        "release_notes": "Added Sister-Company Ripple Engine, Groww-style Senior Analyst IPO Hub with 6-stage lifecycle, and OpenRouter ox-alpha deep research.",
+        "update_url": "https://github.com/Prithvi2004/Market_App/releases",
+        "release_notes": "Q-Results & Announcements Terminal, Multi-Source Verified Disclosures, Short-Term Trader Profit Playbooks, and Google Cloud Firestore Integration.",
         "force_update": False,
     }
 

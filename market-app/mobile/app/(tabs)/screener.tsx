@@ -238,6 +238,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  emptyBody: {
+    fontSize: typography.size.sm,
+    fontFamily: typography.sans,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
   qResultsHeroCard: {
     backgroundColor: '#161922',
     borderColor: '#D4963A40',
