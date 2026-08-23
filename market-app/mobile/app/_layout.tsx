@@ -25,6 +25,8 @@ import { UpdateModal } from '../src/components/ui/UpdateModal';
 import 'expo-insights';
 import { colors } from '../src/theme/colors';
 
+import * as Updates from 'expo-updates';
+
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
@@ -57,6 +59,23 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  // Vercel-like Automatic OTA Update & Reload Effect
+  useEffect(() => {
+    async function checkForOTAUpdates() {
+      if (__DEV__) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (e) {
+        // Quiet fallback if offline or no network
+      }
+    }
+    checkForOTAUpdates();
+  }, []);
 
   if (!fontsLoaded) return null;
 
