@@ -16,13 +16,13 @@ const isTunnel = rawHost.includes('.exp.direct') || rawHost.includes('anonymous'
 
 // Production & Fallback URLs
 const PRODUCTION_URL = 'https://market-app-03va.onrender.com';
-const DEFAULT_LAN_URL = 'http://172.29.230.244:8000';
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// Resolve active API Base URL
+// Resolve active API Base URL: Use ENV_URL in dev mode, PRODUCTION_URL in production updates
 export const API_BASE_URL = (
-  ENV_URL ||
-  (rawHost && !isTunnel ? `http://${rawHost}:8000` : PRODUCTION_URL)
+  __DEV__ 
+    ? (ENV_URL || (rawHost && !isTunnel ? `http://${rawHost}:8000` : PRODUCTION_URL))
+    : (ENV_URL && !ENV_URL.includes("172.") && !ENV_URL.includes("192.") && !ENV_URL.includes("localhost") ? ENV_URL : PRODUCTION_URL)
 ).replace(/\/$/, '');
 
 // WS base is derived automatically from the API base
