@@ -55,14 +55,23 @@ export default function ScreenerScreen() {
         <StatPill label="Alerts" value={data?.length ?? 0} color={colors.accent} />
         <StatPill label="Bullish" value={bullCount} color={colors.bull} />
         <StatPill label="Bearish" value={bearCount} color={colors.bear} />
-        <TouchableOpacity
-          style={styles.earningsBannerBtn}
-          activeOpacity={0.8}
-          onPress={() => router.push('/earnings')}
-        >
-          <Text style={styles.earningsBannerText}>📊 Q-Results Hub</Text>
-        </TouchableOpacity>
       </View>
+
+      {/* Standout Q-Results & Corporate Announcements Hero Card */}
+      <TouchableOpacity
+        style={styles.qResultsHeroCard}
+        activeOpacity={0.85}
+        onPress={() => router.push('/earnings')}
+      >
+        <View style={styles.qResultsCardHeader}>
+          <Text style={styles.qResultsBadge}>🔥 STANDOUT FEATURE</Text>
+          <Text style={styles.qResultsArrow}>View Terminal ➔</Text>
+        </View>
+        <Text style={styles.qResultsTitle}>📊 Q-Results & Corporate Action Hub</Text>
+        <Text style={styles.qResultsSubtitle}>
+          Multi-source verified earnings, PAT growth %, margins & short-term profit playbooks.
+        </Text>
+      </TouchableOpacity>
 
       {/* Filter pills */}
       <ScrollView
@@ -229,21 +238,42 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  emptyBody: {
-    fontSize: typography.size.sm,
+  qResultsHeroCard: {
+    backgroundColor: '#161922',
+    borderColor: '#D4963A40',
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  qResultsCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  qResultsBadge: {
+    fontSize: 10,
+    fontFamily: typography.sansBold,
+    color: '#D4963A',
+    letterSpacing: 0.5,
+  },
+  qResultsArrow: {
+    fontSize: typography.size.xs,
+    fontFamily: typography.sansBold,
+    color: colors.accent,
+  },
+  qResultsTitle: {
+    fontSize: typography.size.md,
+    fontFamily: typography.sansBold,
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  qResultsSubtitle: {
+    fontSize: typography.size.xs,
     fontFamily: typography.sans,
     color: colors.textMuted,
-    textAlign: 'center',
-  },
-  earningsBannerBtn: {
-    backgroundColor: colors.accent,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: radius.md,
-  },
-  earningsBannerText: {
-    fontSize: 11,
-    fontFamily: typography.sansBold,
-    color: '#000000',
+    lineHeight: 16,
   },
 });

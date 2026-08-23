@@ -95,6 +95,22 @@ export default function MarketsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Standout Q-Results & Corporate Action Terminal Banner */}
+      <TouchableOpacity
+        style={styles.qResultsHeroCard}
+        activeOpacity={0.85}
+        onPress={() => router.push('/earnings')}
+      >
+        <View style={styles.qResultsCardHeader}>
+          <Text style={styles.qResultsBadge}>🔥 NEW STANDOUT FEATURE</Text>
+          <Text style={styles.qResultsArrow}>Explore Hub ➔</Text>
+        </View>
+        <Text style={styles.qResultsTitle}>📊 Q-Results & Corporate Action Intelligence</Text>
+        <Text style={styles.qResultsSubtitle}>
+          Multi-source verified quarterly filings, PAT YoY %, revenue, margins & AI short-term profit playbooks.
+        </Text>
+      </TouchableOpacity>
+
       {/* Section header */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Market Overview</Text>
@@ -295,5 +311,42 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: colors.borderDim,
+  },
+  qResultsHeroCard: {
+    backgroundColor: '#161922',
+    borderColor: '#D4963A40',
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: spacing.md,
+    marginVertical: spacing.sm,
+  },
+  qResultsCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  qResultsBadge: {
+    fontSize: 10,
+    fontFamily: typography.sansBold,
+    color: '#D4963A',
+    letterSpacing: 0.5,
+  },
+  qResultsArrow: {
+    fontSize: typography.size.xs,
+    fontFamily: typography.sansBold,
+    color: colors.accent,
+  },
+  qResultsTitle: {
+    fontSize: typography.size.md,
+    fontFamily: typography.sansBold,
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  qResultsSubtitle: {
+    fontSize: typography.size.xs,
+    fontFamily: typography.sans,
+    color: colors.textMuted,
+    lineHeight: 16,
   },
 });
