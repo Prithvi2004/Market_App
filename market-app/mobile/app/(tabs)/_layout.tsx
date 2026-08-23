@@ -69,6 +69,16 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="ipo"
+        options={{
+          title: 'IPO Hub',
+          headerTitle: 'IPO Deep Research',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name={focused ? 'rocket' : 'rocket-outline'} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="sectors"
         options={{
           title: 'Sectors',

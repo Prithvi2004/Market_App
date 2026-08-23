@@ -133,11 +133,13 @@ from routers import llm as llm_router
 from routers import market as market_router
 from routers import news as news_router
 from routers import portfolio as portfolio_router
+from routers import ipo as ipo_router
 
 app.include_router(market_router.router, prefix="/api")
 app.include_router(news_router.router, prefix="/api")
 app.include_router(llm_router.router, prefix="/api")
 app.include_router(portfolio_router.router, prefix="/api")
+app.include_router(ipo_router.router, prefix="/api")
 
 origins = settings.cors_origins
 allow_all = "*" in origins or len(origins) == 0
@@ -210,10 +212,10 @@ def receive_client_log(payload: ClientLogPayload):
 @app.get("/api/version")
 def get_app_version():
     return {
-        "latest_version": "1.0.0",
+        "latest_version": "1.1.0",
         "min_required_version": "1.0.0",
         "update_url": "https://expo.dev/accounts/prithvi0591/projects/marketpulse-mobile/builds",
-        "release_notes": "Added live Grafana telemetry, 13 Deep Analysis sub-tabs, and production failover fixes.",
+        "release_notes": "Added Sister-Company Ripple Engine, Groww-style Senior Analyst IPO Hub with 6-stage lifecycle, and OpenRouter ox-alpha deep research.",
         "force_update": False,
     }
 

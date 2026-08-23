@@ -81,3 +81,40 @@ async def stream_openrouter(
                                 yield content
                     except json.JSONDecodeError:
                         continue
+
+
+def call_llm_json(prompt: str, system_prompt: str = "") -> dict:
+    """Synchronous JSON helper that queries OpenRouter or returns parsed JSON."""
+    api_key = settings.openrouter_api_key
+    if not api_key:
+        raise ValueError("OPENROUTER_API_KEY missing")
+
+    base_url = settings.openrouter_base_url.rstrip("/")
+    url = f"{base_url}/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://market-app.local",
+        "X-Title": "MarketPulse App",
+    }
+
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        "model": settings.openrouter_model or "stealth/ox-alpha",
+        "messages": messages,
+        "stream": False,
+        "response_format": {"type": "json_object"}
+    }
+
+    with httpx.Client(timeout=30.0) as client:
+        resp = client.post(url, json=payload, headers=headers)
+        if resp.status_code == 200:
+            content = resp.json()["choices"][0]["message"]["content"]
+            return json.loads(content)
+        raise RuntimeError(f"OpenRouter HTTP {resp.status_code}: {resp.text}")
+

@@ -163,6 +163,14 @@ async def compare_explain(req: CompareExplainRequest):
     return StreamingResponse(gen(), media_type="text/event-stream")
 
 
+@router.get("/analysis/ripple/{symbol}")
+def ripple_analysis(symbol: str):
+    """Generate conglomerate sister-company news ripple analysis."""
+    from llm.ripple_analyzer import generate_ripple_analysis
+    articles = get_news(ticker=symbol, limit=5)
+    return generate_ripple_analysis(symbol, articles)
+
+
 @router.get("/llm/test")
 @router.post("/llm/test")
 async def test_llm_suite():

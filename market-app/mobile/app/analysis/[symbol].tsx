@@ -22,6 +22,7 @@ import { AdvancedTradingChart } from '../../src/components/stock/AdvancedTrading
 import { AIExplainer } from '../../src/components/stock/AIExplainer';
 import { FundamentalsPanel } from '../../src/components/stock/FundamentalsPanel';
 import { PeersPanel } from '../../src/components/stock/PeersPanel';
+import { RippleMatrixPanel } from '../../src/components/analysis/RippleMatrixPanel';
 import { Card } from '../../src/components/ui/Card';
 import { MetricCard } from '../../src/components/ui/MetricCard';
 import { TouchPill } from '../../src/components/ui/TouchPill';
@@ -41,6 +42,7 @@ import type { NewsArticle } from '../../src/types/news';
 
 type SubTab =
   | 'ai'
+  | 'ripple'
   | 'copilot'
   | 'compare'
   | 'risk'
@@ -56,6 +58,7 @@ type SubTab =
 
 const SUB_TABS: { id: SubTab; label: string; icon: string }[] = [
   { id: 'ai', label: 'AI Explainer', icon: '✨' },
+  { id: 'ripple', label: 'Ripple Matrix', icon: '🌐' },
   { id: 'copilot', label: 'Co-Pilot', icon: '💬' },
   { id: 'compare', label: 'Compare', icon: '👥' },
   { id: 'risk', label: 'Risk', icon: '🛡️' },
@@ -514,6 +517,14 @@ export default function DeepAnalysisTerminalScreen() {
             isLoading={peersLoading}
             onSelectPeer={(s) => router.push(`/analysis/${s}`)}
           />
+        </Card>
+      )}
+
+      {/* Sub-Panel 14: 🌐 Ripple Matrix */}
+      {activeTab === 'ripple' && (
+        <Card style={styles.panelCard}>
+          <Text style={styles.panelTitle}>🌐 SISTER COMPANY RIPPLE MATRIX</Text>
+          <RippleMatrixPanel symbol={symbol} />
         </Card>
       )}
     </ScrollView>
