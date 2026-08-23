@@ -144,6 +144,13 @@ def _poll_symbol_batch(symbols: list[str]) -> dict[str, Quote]:
                 continue
             quotes[sym] = q
             cache_set(f"quote:{sym}", q.model_dump(), ttl=settings.quote_ttl)
+
+            # Save to Google Cloud Firestore
+            try:
+                from firestore_db import save_stock_quote_firestore
+                save_stock_quote_firestore(q.model_dump())
+            except Exception:
+                pass
         except Exception as e:
             log.debug("per-symbol fetch failed for %s: %s", sym, e)
 

@@ -1011,12 +1011,41 @@ def _bg_precompute_analysis(ipo_item: dict):
     except Exception:
         pass
 
+
+def seed_firestore_ipos():
+    """Populate Firestore 'ipo_hub' collection with baseline IPO dataset if active."""
+    try:
+        from firestore_db import is_firestore_active, save_ipo_event_firestore
+        if is_firestore_active():
+            for ipo in VERIFIED_INDIAN_IPOS:
+                save_ipo_event_firestore(ipo)
+    except Exception:
+        pass
+
+
+seed_firestore_ipos()
+
 @router.get("/ipo/list")
 def get_ipo_list(
     status: str | None = Query(default=None, description="Filter by status: ACTIVE, CLOSED, UPCOMING, LISTED"),
     category: str | None = Query(default=None, description="Filter by type: Mainboard, SME")
 ):
     """Return all live, closed, upcoming & listed IPOs with status and category filtering."""
+    try:
+        from firestore_db import is_firestore_active, get_live_ipos_firestore
+        if is_firestore_active():
+            fs_ipos = get_live_ipos_firestore(status_filter=status)
+            if fs_ipos:
+                if category:
+                    c_lower = category.lower()
+                    fs_ipos = [i for i in fs_ipos if c_lower in i.get("category", "").lower()]
+                return {
+                    "count": len(fs_ipos),
+                    "ipos": fs_ipos
+                }
+    except Exception:
+        pass
+
     items = VERIFIED_INDIAN_IPOS
 
     if status and status.upper() not in ["ALL", "ALL IPOS"]:

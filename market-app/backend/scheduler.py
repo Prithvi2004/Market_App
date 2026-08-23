@@ -10,6 +10,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from config import settings
 from ingestion.market_poller import persist_daily_ohlcv, poll_quotes
 from ingestion.news_fetcher import fetch_all as fetch_news
+from ingestion.earnings_fetcher import parse_and_ingest_latest_news_earnings
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +26,8 @@ def start_scheduler() -> AsyncIOScheduler:
                   id="poll_quotes", max_instances=1, coalesce=True, next_run_time=None)
     sched.add_job(fetch_news, IntervalTrigger(seconds=settings.news_poll_seconds),
                   id="fetch_news", max_instances=1, coalesce=True, next_run_time=None)
+    sched.add_job(parse_and_ingest_latest_news_earnings, IntervalTrigger(minutes=15),
+                  id="parse_and_ingest_latest_news_earnings", max_instances=1, coalesce=True)
     sched.add_job(persist_daily_ohlcv, CronTrigger(hour=16, minute=0),
                   id="persist_daily_ohlcv", max_instances=1, coalesce=True)
     sched.start()

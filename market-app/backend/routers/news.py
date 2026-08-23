@@ -80,6 +80,17 @@ def get_latest(limit: int = 30):
     cached = cache_get("news:latest")
     if cached:
         return cached[:limit]
+
+    try:
+        from firestore_db import is_firestore_active, get_latest_news_firestore
+        if is_firestore_active():
+            fs_news = get_latest_news_firestore(limit=limit)
+            if fs_news:
+                cache_set("news:latest", fs_news, ttl=300)
+                return fs_news[:limit]
+    except Exception:
+        pass
+
     with get_session() as session:
         rows = session.exec(
             select(NewsArticleDB).order_by(NewsArticleDB.published_at.desc()).limit(max(limit, 50))

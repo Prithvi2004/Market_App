@@ -77,6 +77,18 @@ def _save_article(session, aid: str, title: str, summary: str, url: str,
         fetched_at=now_ist().replace(tzinfo=None),
     )
     session.add(row)
+
+    # Save to Google Cloud Firestore
+    try:
+        from firestore_db import save_news_article_firestore
+        save_news_article_firestore(
+            aid=aid, title=title, summary=summary[:600],
+            url=url, source=source, published_at=published_at,
+            category=cat, tickers=tickers, sentiment=sentiment, sentiment_label=label
+        )
+    except Exception:
+        pass
+
     return True
 
 

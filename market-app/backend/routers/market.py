@@ -672,4 +672,14 @@ def get_screener_alerts():
     # Sort alerts by symbol
     alerts = sorted(alerts, key=lambda x: x["symbol"])
     cache_set(cache_key, alerts, ttl=900)  # cache for 15 minutes
+
+    # Save to Google Cloud Firestore
+    try:
+        from firestore_db import is_firestore_active, save_screener_alert_firestore
+        if is_firestore_active():
+            for alt in alerts:
+                save_screener_alert_firestore(alt)
+    except Exception:
+        pass
+
     return alerts

@@ -24,6 +24,30 @@ class NewsArticleDB(SQLModel, table=True):
     fetched_at: datetime
 
 
+class EarningsEventDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    symbol: str = Field(index=True)
+    company_name: str
+    event_type: str  # "Q-Results" | "Major Announcement"
+    event_title: str
+    announcement_date: str
+    period: str
+    segment: str  # "Mainboard" | "SME"
+    revenue_cr: float
+    revenue_yoy_pct: float
+    revenue_qoq_pct: float
+    pat_cr: float
+    pat_yoy_pct: float
+    pat_qoq_pct: float
+    ebitda_margin_pct: float
+    estimate_verdict: str  # "MEGA BEAT" | "BEAT" | "IN-LINE" | "MISS"
+    surprise_pct: float
+    key_highlights: str  # JSON array string
+    short_term_rating: str  # "VERY HIGH" | "HIGH" | "MODERATE"
+    source_url: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class OHLCVRecord(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     symbol: str = Field(index=True)

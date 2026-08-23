@@ -52,7 +52,7 @@ def _get_client() -> Any:
             _client.ping()
             _last_failed_at = None
         except Exception as e:
-            log.warning("Redis unavailable (%s) — using in-process fallback cache", e)
+            log.debug("Redis unavailable (%s) — using in-process fallback cache", e)
             _last_failed_at = time.time()
             _client = None
     return _client

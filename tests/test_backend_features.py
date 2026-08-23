@@ -1,5 +1,5 @@
 """
-Unit tests for Sister-Company Ripple Engine and Senior Analyst IPO Hub.
+Unit tests for Sister-Company Ripple Engine, Senior Analyst IPO Hub, and Q-Results Terminal.
 """
 
 import sys
@@ -12,6 +12,8 @@ from conglomerates import get_conglomerate_for_ticker
 from llm.ripple_analyzer import generate_ripple_analysis
 from llm.ipo_analyst import analyze_ipo_deep
 from routers.ipo import VERIFIED_INDIAN_IPOS
+from ingestion.earnings_fetcher import fetch_live_earnings_announcements, SEED_EARNINGS_ANNOUNCEMENTS
+from llm.earnings_analyst import analyze_earnings_deep
 
 class TestBackendFeatures(unittest.TestCase):
     def test_conglomerate_mapping_tata(self):
@@ -35,6 +37,20 @@ class TestBackendFeatures(unittest.TestCase):
         res = analyze_ipo_deep(sample_ipo)
         self.assertIn("recommendation", res)
         self.assertTrue("allotment_maximizer_strategy" in res or "allotment_maximizer_steps" in res)
+
+    def test_earnings_fetcher(self):
+        events = fetch_live_earnings_announcements()
+        self.assertGreater(len(events), 0)
+        self.assertIn("symbol", events[0])
+        self.assertIn("pat_yoy_pct", events[0])
+
+    def test_earnings_deep_analysis(self):
+        sample_event = SEED_EARNINGS_ANNOUNCEMENTS[0]
+        res = analyze_earnings_deep(sample_event)
+        self.assertIn("verdict", res)
+        self.assertIn("trader_playbook", res)
+        self.assertIn("ideal_entry_zone", res["trader_playbook"])
+        self.assertIn("target_1_immediate", res["trader_playbook"])
 
 if __name__ == "__main__":
     unittest.main()

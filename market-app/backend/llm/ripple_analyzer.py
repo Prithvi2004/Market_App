@@ -76,7 +76,14 @@ Perform a deep ripple analysis for {symbol} and its sister entities.
 
     try:
         res = call_llm_json(prompt=prompt, system_prompt=SYSTEM_PROMPT)
-        if isinstance(res, dict) and "primary_impact_score" in res:
+        if isinstance(res, dict) and "group_name" in res:
+            try:
+                from firestore_db import is_firestore_active, _firestore_db
+                if is_firestore_active():
+                    doc_id = f"{symbol.replace('.', '_')}_{hash(str(res)) & 0xffff}"
+                    _firestore_db.collection("conglomerate_ripples").document(doc_id).set(res, merge=True)
+            except Exception:
+                pass
             return res
     except Exception as exc:
         log.exception("Error in generate_ripple_analysis LLM call: %s", exc)

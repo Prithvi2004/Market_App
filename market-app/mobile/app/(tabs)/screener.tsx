@@ -55,11 +55,13 @@ export default function ScreenerScreen() {
         <StatPill label="Alerts" value={data?.length ?? 0} color={colors.accent} />
         <StatPill label="Bullish" value={bullCount} color={colors.bull} />
         <StatPill label="Bearish" value={bearCount} color={colors.bear} />
-        {dataUpdatedAt ? (
-          <Text style={styles.lastUpdate}>
-            Updated {new Date(dataUpdatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-          </Text>
-        ) : null}
+        <TouchableOpacity
+          style={styles.earningsBannerBtn}
+          activeOpacity={0.8}
+          onPress={() => router.push('/earnings')}
+        >
+          <Text style={styles.earningsBannerText}>📊 Q-Results Hub</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Filter pills */}
@@ -232,5 +234,16 @@ const styles = StyleSheet.create({
     fontFamily: typography.sans,
     color: colors.textMuted,
     textAlign: 'center',
+  },
+  earningsBannerBtn: {
+    backgroundColor: colors.accent,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: radius.md,
+  },
+  earningsBannerText: {
+    fontSize: 11,
+    fontFamily: typography.sansBold,
+    color: '#000000',
   },
 });

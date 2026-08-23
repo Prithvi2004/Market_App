@@ -145,6 +145,8 @@ class Settings:
     db_url: str = os.getenv("DB_URL", "sqlite:///./market.db")
     newsdata_api_key: str = os.getenv("NEWSDATA_API_KEY", "")
     gnews_api_key: str = os.getenv("GNEWS_API_KEY", "")
+    firestore_project_id: str = os.getenv("FIRESTORE_PROJECT_ID", "")
+    firebase_credentials_path: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "serviceAccountKey.json")
     cors_origins: list[str] = field(default_factory=lambda: [
         origin.strip() for origin in os.getenv(
             "CORS_ORIGINS",

@@ -16,3 +16,5 @@ python-dotenv==1.0.1
 psycopg2-binary==2.9.9
 numpy>=1.24.0
 pandas>=2.0.0
+google-cloud-firestore>=2.16.0
+firebase-admin>=6.5.0

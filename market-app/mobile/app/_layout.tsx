@@ -109,6 +109,20 @@ export default function RootLayout() {
                 animation: 'slide_from_bottom',
               }}
             />
+            <Stack.Screen
+              name="earnings/index"
+              options={{
+                title: '⚡ Q-Results & Corporate Action Hub',
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="earnings/[symbol]"
+              options={{
+                title: 'Institutional Q-Result Playbook',
+                animation: 'slide_from_bottom',
+              }}
+            />
           </Stack>
         </View>
       </SafeAreaProvider>
